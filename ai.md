@@ -20,7 +20,7 @@ MuPiBox-NG is a Raspberry Pi / DietPi appliance with a private application core.
 | `sdk/mupibox-sdk.js` | Public browser facade; only stable documented APIs |
 | `schema/manifest-v1.schema.json` | Published manifest contract |
 | `tools/mupiapp.py` | Deterministic packager + adversarial validator |
-| `examples/tic-tac-toe/` | Go/WASM example; **Go compiles to WASM**, not a Linux binary |
+| `examples/tic-tac-toe/` | MuPi Kreuz & Kreis (legacy path and stable app ID): Go/WASM example; **Go compiles to WASM**, not a Linux binary |
 | `examples/klang-memory/` | Independent HTML/JS demonstration, not a replacement for the native game |
 | `docs/quickstart.md`, `docs/manifest-v1.md`, `docs/architecture.md` | Developer and security documentation |
 | `GETTING_STARTED.en.md` | Short English creation and contribution guide |
@@ -96,6 +96,14 @@ cd my-app && python3 -m http.server 8080
 ```
 
 For Go/WASM, build with `GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -o game.wasm ./cmd/wasm` and ship the **matching** Go `wasm_exec.js` plus its license notice.
+
+## Mandatory game-name clearance before any official release
+
+For **MuPi Kreuz & Kreis**, **MuPi 4er-Reihe** and **MuPi Krümelwurm**, follow
+[`docs/release-checklist.md`](docs/release-checklist.md) and the linked blocking
+GitHub issue. Never publish Release assets or alter the curated catalog to point
+at new versions before the trademark/design/license review and written approval.
+The original Tic-Tac-Toe app ID must stay stable across the renamed release.
 
 ## Curated catalog rules
 

@@ -22,8 +22,8 @@ Example manifest:
 {
   "apiVersion": "1",
   "id": "community.tictactoe",
-  "name": "Tic Tac Toe",
-  "version": "0.1.0",
+  "name": "MuPi Kreuz & Kreis",
+  "version": "0.2.0",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.svg",

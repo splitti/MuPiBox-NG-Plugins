@@ -4,6 +4,16 @@
 
 Every entry must have: `id`, `name`, `description`, `category`, `author`, `version`, `releaseTag`, `asset`, `sha256` (lowercase SHA-256 of the **published Release asset**), and `permissions`. No arbitrary download URLs, alternate hosts or shell executables.
 
+## Mandatory release-clearance gate for board games
+
+**Do not publish new assets or catalog updates for MuPi Kreuz & Kreis, MuPi 4er-Reihe,
+or MuPi Krümelwurm until every item in [the release checklist](../docs/release-checklist.md)
+and [issue #1](https://github.com/splitti/MuPiBox-NG-Plugins/issues/1)
+has been reviewed and signed off.** An unreviewed source branch, pull request,
+CI artifact or ZIP is *not* an approved catalog release. The existing legacy
+Tic-Tac-Toe catalog entry intentionally remains unchanged until a matching,
+cleared new release is available.
+
 ## Submit your app
 
 You can develop in your own repository without NG core access. For inclusion in the **built-in** curated catalog:
