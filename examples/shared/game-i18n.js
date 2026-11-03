@@ -27,7 +27,8 @@
       directionLeft:"Links",
       directionRight:"Rechts",
       gardenBoard:"Garten-Spielfeld",
-      wormSpeed:"Geschwindigkeit",\n      cell:'Feld {number}', column:'Spalte {number}', free:'frei', occupied:'belegt'
+      wormSpeed:"Geschwindigkeit",
+      cell:'Feld {number}', column:'Spalte {number}', free:'frei', occupied:'belegt'
     },
     en: {
       community:'Community App', exit:'Close', mode:'Game mode', two:'2 players',
@@ -52,7 +53,8 @@
       directionLeft:"Left",
       directionRight:"Right",
       gardenBoard:"Garden playfield",
-      wormSpeed:"Speed",\n      cell:'Square {number}', column:'Column {number}', free:'empty', occupied:'occupied'
+      wormSpeed:"Speed",
+      cell:'Square {number}', column:'Column {number}', free:'empty', occupied:'occupied'
     },
     fr: {
       community:'Appli communautaire', exit:'Fermer', mode:'Mode de jeu', two:'2 joueurs',
@@ -77,7 +79,8 @@
       directionLeft:"Gauche",
       directionRight:"Droite",
       gardenBoard:"Terrain de jeu du jardin",
-      wormSpeed:"Vitesse",\n      cell:'Case {number}', column:'Colonne {number}', free:'libre', occupied:'occupée'
+      wormSpeed:"Vitesse",
+      cell:'Case {number}', column:'Colonne {number}', free:'libre', occupied:'occupée'
     },
     es: {
       community:'App comunitaria', exit:'Cerrar', mode:'Modo de juego', two:'2 jugadores',
@@ -102,7 +105,8 @@
       directionLeft:"Izquierda",
       directionRight:"Derecha",
       gardenBoard:"Tablero del jardín",
-      wormSpeed:"Velocidad",\n      cell:'Casilla {number}', column:'Columna {number}', free:'libre', occupied:'ocupada'
+      wormSpeed:"Velocidad",
+      cell:'Casilla {number}', column:'Columna {number}', free:'libre', occupied:'ocupada'
     },
     it: {
       community:'App della community', exit:'Chiudi', mode:'Modalità', two:'2 giocatori',
@@ -127,7 +131,8 @@
       directionLeft:"Sinistra",
       directionRight:"Destra",
       gardenBoard:"Campo di gioco del giardino",
-      wormSpeed:"Velocità",\n      cell:'Casella {number}', column:'Colonna {number}', free:'libera', occupied:'occupata'
+      wormSpeed:"Velocità",
+      cell:'Casella {number}', column:'Colonna {number}', free:'libera', occupied:'occupata'
     },
     nl: {
       community:'Community-app', exit:'Sluiten', mode:'Spelmodus', two:'2 spelers',
@@ -152,7 +157,8 @@
       directionLeft:"Links",
       directionRight:"Rechts",
       gardenBoard:"Speelveld in de tuin",
-      wormSpeed:"Snelheid",\n      cell:'Vak {number}', column:'Kolom {number}', free:'leeg', occupied:'bezet'
+      wormSpeed:"Snelheid",
+      cell:'Vak {number}', column:'Kolom {number}', free:'leeg', occupied:'bezet'
     },
     sv: {
       community:'Community-app', exit:'Stäng', mode:'Spelläge', two:'2 spelare',
