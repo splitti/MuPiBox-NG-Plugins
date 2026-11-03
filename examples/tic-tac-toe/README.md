@@ -1,6 +1,6 @@
-# Tic Tac Toe – Community-App
+# MuPi Kreuz & Kreis – Community-App
 
-Ein vollständig offline laufendes Go/WebAssembly-Tic-Tac-Toe für MuPiBox-NG.
+Ein vollständig offline laufendes Go/WebAssembly-Spiel auf einem 3×3-Raster für MuPiBox-NG.
 Die Spielregeln bleiben in Go/WASM implementiert, der MuPi-Gegner läuft im
 Browser-JavaScript und benutzt dieselben Go-Zugregeln.
 
