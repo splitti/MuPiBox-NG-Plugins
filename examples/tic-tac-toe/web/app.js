@@ -1,4 +1,4 @@
-/* Tic-Tac-Toe browser UI: Go/WASM rules, independent JS opponent, offline i18n. MIT. */
+/* MuPi Kreuz & Kreis UI: Go/WASM rules, original JS AI, offline i18n. MIT. */
 (function () {
   'use strict';
   const sdk = window.MuPiBoxSDK;
@@ -106,7 +106,7 @@
       render(state);
       scheduleBot();
     } catch (error) {
-      console.warn('[Tic Tac Toe] move failed', error);
+      console.warn('[MuPi Kreuz & Kreis] move failed', error);
       status.textContent = t('error');
     }
   }
@@ -175,7 +175,7 @@
     if (!response.ok) throw new Error('Missing game.wasm');
     const { instance } = await WebAssembly.instantiate(await response.arrayBuffer(), go.importObject);
     void go.run(instance).catch(error => {
-      console.warn('[Tic Tac Toe] WASM failed', error);
+      console.warn('[MuPi Kreuz & Kreis] WASM failed', error);
       status.textContent = t('error');
     });
     if (typeof window.mupiTicTacToeState !== 'function') throw new Error('WASM not initialized');
@@ -183,7 +183,7 @@
   }
 
   void loadGame().catch(error => {
-    console.error('[Tic Tac Toe] startup failed', error);
+    console.error('[MuPi Kreuz & Kreis] startup failed', error);
     status.textContent = t('error');
   });
 })();
