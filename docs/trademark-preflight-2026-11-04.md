@@ -1,6 +1,6 @@
 # Vorläufige Marken- und Copyrightprüfung – MuPi Community-Spiele
 
-**Recherchestand:** 04.11.2026. **Releasefreigabe:** noch nicht erteilt.
+**Recherchestand:** 04.11.2026. **Releaseentscheidung:** Der Projektbetreiber akzeptiert nach kostenloser Vorprüfung ausdrücklich das verbleibende Markenrisiko und wünscht Veröffentlichung. Keine rechtliche Garantie oder amtliche Negativauskunft.
 **Nachweisdokument zu [Issue #1](https://github.com/splitti/MuPiBox-NG-Plugins/issues/1).**
 
 ## Reichweite und Grenzen
@@ -99,7 +99,7 @@ verwendbar**, aber **nicht rechtlich freigegeben**. Aufgrund der bekannten
 „MUPI“-Eintragungen und der fremden Verwendung „Kreuz & Kreis“ sollte keine
 absolute Markenfreiheit behauptet werden.
 
-**Weiterhin offen vor Freigabe:**
+**Weiterhin nicht vollständig überprüft / empfohlene Nachkontrollen:**
 - [ ] Interaktive amtliche DPMAregister-/EUIPO-TMview-/WIPO-Suche mit
   Screenshots/Datumsnachweis (identisch + ähnlich + alle Übersetzungen;
   Klassen 9, 28, 41 und sachlich verwandte Waren/Dienstleistungen).
@@ -112,5 +112,6 @@ absolute Markenfreiheit behauptet werden.
   Release-Checkliste.
 - [ ] Erst danach offizielle Assets veröffentlichen und den Katalog umstellen.
 
-Die Release-Sperre aus [Issue #1](https://github.com/splitti/MuPiBox-NG-Plugins/issues/1)
-bleibt bestehen.
+Die frühere interne Release-Sperre wird auf ausdrücklichen Wunsch des
+Projektbetreibers durch die dokumentierte Best-Effort-Risikoentscheidung ersetzt.
+Das bedeutet **nicht**, dass Register negativ geprüft oder ältere Rechte ausgeschlossen wurden.

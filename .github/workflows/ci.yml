@@ -41,7 +41,7 @@ jobs:
         run: python3 tools/build_webcam_example.py
       - name: Verify package
         run: |
-          python3 tools/mupiapp.py validate dist/tic-tac-toe.mupiapp
+          python3 tools/mupiapp.py validate dist/mupi-kreuz-kreis.mupiapp
           python3 tools/mupiapp.py validate dist/four-in-a-row.mupiapp
           python3 tools/mupiapp.py validate dist/crumbworm.mupiapp
           python3 tools/mupiapp.py validate dist/klang-memory.mupiapp
@@ -55,7 +55,7 @@ jobs:
         with:
           name: board-games-and-examples-preview
           path: |
-            dist/tic-tac-toe.mupiapp
+            dist/mupi-kreuz-kreis.mupiapp
             dist/four-in-a-row.mupiapp
             dist/crumbworm.mupiapp
             dist/klang-memory.mupiapp

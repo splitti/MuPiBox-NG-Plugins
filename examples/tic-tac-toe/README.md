@@ -24,7 +24,7 @@ zwischen Modi um, B/Back schließt die App. Modi werden app-lokal gespeichert.
 ```bash
 (cd examples/tic-tac-toe && go test ./game)
 python3 tools/build_example.py
-python3 tools/mupiapp.py validate dist/tic-tac-toe.mupiapp
+python3 tools/mupiapp.py validate dist/mupi-kreuz-kreis.mupiapp
 ```
 
 Das gebündelte `wasm_exec.js` enthält einen Go-Laufzeit-Lizenzhinweis.

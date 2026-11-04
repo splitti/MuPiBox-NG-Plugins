@@ -4,15 +4,19 @@
 
 Every entry must have: `id`, `name`, `description`, `category`, `author`, `version`, `releaseTag`, `asset`, `sha256` (lowercase SHA-256 of the **published Release asset**), and `permissions`. No arbitrary download URLs, alternate hosts or shell executables.
 
-## Mandatory release-clearance gate for board games
+## Free name-rights preflight for the three MuPi games
 
-**Do not publish new assets or catalog updates for MuPi Kreuz & Kreis, MuPi 4er-Reihe,
-or MuPi Krümelwurm until every item in [the release checklist](../docs/release-checklist.md)
-and [issue #1](https://github.com/splitti/MuPiBox-NG-Plugins/issues/1)
-has been reviewed and signed off.** An unreviewed source branch, pull request,
-CI artifact or ZIP is *not* an approved catalog release. The existing legacy
-Tic-Tac-Toe catalog entry intentionally remains unchanged until a matching,
-cleared new release is available.
+The project owner explicitly chose a **free, non-lawyer risk assessment**
+and accepted the residual trademark risk for the open-source release.
+Read the [written decision](../docs/release-checklist.md) and
+[preliminary evidence](../docs/trademark-preflight-2026-11-04.md).
+The lack of a paid register search does **not** establish freedom from trademarks.
+For these three games the source uses original program code, UI and icons.
+
+Do not change any catalog record until the **real official GitHub Release asset**
+exists, was downloaded, and its exact SHA-256 and manifest have been verified.
+Keep \`community.tictactoe\` for backward-compatible updates even though its
+visible title is now **MuPi Kreuz & Kreis**.
 
 ## Submit your app
 

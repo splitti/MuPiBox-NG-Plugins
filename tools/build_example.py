@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile the Go/WASM Tic-Tac-Toe example and ship bundled seven-language UI."""
+"""Compile the Go/WASM MuPi Kreuz & Kreis example and ship bundled seven-language UI."""
 
 import os
 import shutil
@@ -11,7 +11,7 @@ from mupiapp import pack
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples" / "tic-tac-toe"
 STAGING = ROOT / ".build" / "tic-tac-toe"
-DIST = ROOT / "dist" / "tic-tac-toe.mupiapp"
+DIST = ROOT / "dist" / "mupi-kreuz-kreis.mupiapp"
 
 
 def main() -> int:

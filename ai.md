@@ -78,7 +78,7 @@ python3 -m unittest discover -s tests -v
 (cd examples/tic-tac-toe && go test ./game)
 python3 tools/build_example.py
 python3 tools/build_klang_memory.py
-python3 tools/mupiapp.py validate dist/tic-tac-toe.mupiapp
+python3 tools/mupiapp.py validate dist/mupi-kreuz-kreis.mupiapp
 python3 tools/mupiapp.py validate dist/klang-memory.mupiapp
 node --check sdk/mupibox-sdk.js
 node --check examples/klang-memory/app.js
@@ -97,13 +97,16 @@ cd my-app && python3 -m http.server 8080
 
 For Go/WASM, build with `GOOS=js GOARCH=wasm CGO_ENABLED=0 go build -o game.wasm ./cmd/wasm` and ship the **matching** Go `wasm_exec.js` plus its license notice.
 
-## Mandatory game-name clearance before any official release
+## Game-name and copyright risk documentation
 
-For **MuPi Kreuz & Kreis**, **MuPi 4er-Reihe** and **MuPi Krümelwurm**, follow
-[`docs/release-checklist.md`](docs/release-checklist.md) and the linked blocking
-GitHub issue. Never publish Release assets or alter the curated catalog to point
-at new versions before the trademark/design/license review and written approval.
-The original Tic-Tac-Toe app ID must stay stable across the renamed release.
+For MuPi Kreuz & Kreis, MuPi 4er-Reihe and MuPi Krümelwurm, refer to
+[\`docs/release-checklist.md\`](docs/release-checklist.md) and the
+[preliminary review](docs/trademark-preflight-2026-11-04.md).
+The owner accepted the **remaining unverified trademark risk** and chose
+not to pay for external legal advice. Never claim that DPMA/EUIPO/WIPO
+full register searches were completed when they were not.
+An official catalog entry still requires actual verified Release bytes.
+The legacy Tic-Tac-Toe app ID stays stable through the rename.
 
 ## Curated catalog rules
 

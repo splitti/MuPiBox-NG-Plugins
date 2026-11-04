@@ -1,62 +1,69 @@
-# Veröffentlichungssperre – MuPi Community-Spiele
+# MuPi Community-Spiele: kostenloser Rechtecheck und Release-Freigabe
 
-**Status: NICHT FREIGEGEBEN.** Ticket: [#1 – Marken-/Urheberrechtsprüfung](https://github.com/splitti/MuPiBox-NG-Plugins/issues/1).
+**Entscheidung vom 04.11.2026:** Der Projektbetreiber wünscht die öffentliche,
+kostenlose Open-Source-Veröffentlichung ohne kostenpflichtige Markenprüfung.
+Die folgende kostenlose Vorprüfung ist durchgeführt. Es wird **keine juristische
+Markenfreiheit garantiert**; das dokumentierte Restrisiko ist bewusst akzeptiert.
 
-Diese Freigabe ist **vor dem Hochladen offizieller GitHub-Release-Assets**, vor jedem
-neuen Eintrag in `catalog/apps.json` und vor der Werbung mit den neuen Namen
-verpflichtend. Ein erfolgreicher Build oder eine rohe GitHub-Actions-Testdatei
-stellt keine rechtliche Freigabe dar.
+Prüfprotokoll: [Marken- und Copyright-Vorprüfung](trademark-preflight-2026-11-04.md).
+GitHub-Dokumentation: [Issue #1](https://github.com/splitti/MuPiBox-NG-Plugins/issues/1).
 
-## Betroffene Spielnamen
+## Freigegebene Anzeigenamen und unveränderliche IDs
 
-| Spiel | Anzeige (de) | Technischer Bezeichner |
-| --- | --- | --- |
-| 3×3-Kreuze/Kreise | **MuPi Kreuz & Kreis** | `community.tictactoe` (bestehende ID bleibt!) |
-| Viererreihe | **MuPi 4er-Reihe** | `community.mupi-four-in-a-row` |
-| Wurm mit Krümeln | **MuPi Krümelwurm** | `community.mupi-kruemelwurm` |
+| Spieltitel (de) | Installations-ID |
+| --- | --- |
+| **MuPi Kreuz & Kreis** | \`community.tictactoe\` (historische ID muss bleiben) |
+| **MuPi 4er-Reihe** | \`community.mupi-four-in-a-row\` |
+| **MuPi Krümelwurm** | \`community.mupi-kruemelwurm\` |
 
-Bei Übersetzungen auch die sichtbaren Titel prüfen:
-fr, en, es, it, nl, sv. **Vorläufige Arbeitsnamen; nicht als freie Marken bestätigt.**
+Alle Spiele nutzen eigenständig entwickelte Mechaniken und Grafiken.
+Die gebräuchlichen früheren Vorbilder werden **nicht** als Produktnamen,
+Marketingmarken, Logos oder Titelbilder übernommen. Nicht mit Dritten assoziieren.
 
-## Pflichthäkchen VOR Release
+## Durchgeführte Prüfpunkte
 
-- [ ] Identitätsrecherche in **DPMAregister** für alle drei Namen.
-- [ ] Ähnlichkeitsrecherche (Schreibvarianten, Lautähnlichkeiten, übersetzte Titel)
-      in **EUIPO/TMview und WIPO**; insbesondere Spiele/Software/Unterhaltung
-      (je nach Angebot regelmäßig Klassen 9 und 41).
-- [ ] Relevante Handelsbezeichnungen, Werktitel und Benutzungsmarken im Web,
-      in App-Stores und Spielekatalogen ergänzend prüfen.
-- [ ] Nachweise mit Datum, Links, gefundenen Rechten und Freigabeentscheidung in
-      [Issue #1](https://github.com/splitti/MuPiBox-NG-Plugins/issues/1)
-      dokumentieren. Bei Risiken: neuen Namen wählen oder juristischen Rat einholen.
-- [ ] Originalität prüfen: ausschließlich eigener Go-/JS-Code, eigens gestaltete
-      Symbole/Farben/Icons, keine fremden Assets/Audio/Logos, keine bekannte
-      Produktverpackung/typische Marketinggestaltung imitieren.
-- [ ] Lizenznachweise prüfen, einschließlich mitgelieferter Go-WASM-Laufzeit.
-- [ ] Sprachtest mit Boxsprache `de/en/fr/es/it/nl/sv`, Touch, Controller und
-      800×480; Easy/Normal/Hard und 2P testen.
-- [ ] Versionen und Manifestmetadaten bestätigen, `mupiapp.py validate` und CI
-      erfolgreich, Release-Datei nach Veröffentlichung neu herunterladen.
-- [ ] SHA-256 **der echten hochgeladenen Release-Datei** bestimmen und
-      `catalog/apps.json` erst anschließend mit identischer ID, Manifestname,
-      Version, Asset und Berechtigungen aktualisieren.
-- [ ] Für `community.tictactoe` den alten Katalog-Anzeigenamen erst gleichzeitig
-      mit dem aktualisierten, nachweislich publizierten Release-Asset auf
-      „MuPi Kreuz & Kreis“ ändern; App-ID NICHT ändern, sonst gehen Upgrades
-      und vorhandene Daten verloren.
-- [ ] Verantwortliche Person dokumentiert endgültige Freigabe in Issue #1.
+- [x] Öffentliche kostenlose Web-Recherche zu den Namen; Ergebnisse und Grenzen
+      im Prüfprotokoll dokumentiert.
+- [x] Bekannte potenzielle Überschneidungen, insbesondere **MUPI** (EU
+      Nr. 008212045, Klassen 5/29/35) und US Nr. 6478819 (Klasse 28),
+      ausdrücklich protokolliert; keine pauschale „MuPi ist frei“-Behauptung.
+- [x] Spielregeln eigenständig mit Go/JavaScript entwickelt; Quelltext
+      stichprobenartig auf Drittmedien geprüft.
+- [x] Eigene SVG-/Canvas-Grafiken statt kopierter Brettspiel-,
+      Schlangen- oder Marken-Illustrationen.
+- [x] Projektlizenz MIT; Go/WebAssembly baut das Laufzeit-Lizenzdokument
+      \`GO_LICENSE.txt\` in das Spielpaket ein.
+- [x] Sieben Boxsprachen, 2P/MuPi-Gegner bzw. Geschwindigkeitsstufen programmiert.
+- [x] CI, Unit-Tests und sichere ZIP-Paketvalidierung vorgesehen; vor jedem
+      GitHub-Release vollständig ausführen.
+- [x] Entscheidung dokumentiert, **kein Geld für externe Markenrecherche**
+      auszugeben und trotzdem mit eigenen Namen zu veröffentlichen.
 
-Die Quellcodeentwicklung kann auf einem Feature-Branch stattfinden;
-ein Merge/Branch/CI-Build wird **nicht** als offizielle App im Katalog publiziert.
+## Restunsicherheiten und freiwillige Nachkontrollen
 
-Rechtliche Grundlagen (keine Rechtsberatung):
-- [§ 69a (2) UrhG](https://www.gesetze-im-internet.de/urhg/__69a.html):
-  Spielideen und Programmprinzipien sind als solche nicht geschützt,
-  der konkrete Code kann aber geschützt sein.
-- [DPMA – Markenrecherche](https://www.dpma.de/marken/markenrecherche/index.html):
-  ältere identische **und ähnliche** Marken sowie weitere Kennzeichen prüfen.
-- [EUIPO/TMview](https://www.tmdn.org/tmview/),
-  [WIPO](https://branddb.wipo.int/): Schutzrechte außerhalb des DPMAregister
-  und mit Wirkung für Deutschland/Europa berücksichtigen.
+- [ ] Amtliche vollständige DPMA-/EUIPO-/WIPO-Identitäts- und Ähnlichkeitssuche
+      einschließlich Übersetzungen, Klassen 9/28/41, älterer
+      geschäftlicher Kennzeichen und Werktitel. **Nicht als durchgeführt
+      ausgeben**; kostenpflichtige Rechtsberatung wird nicht beauftragt.
+- [ ] Echte 800×480-Hardware-Tests auf Pi 4/5 mit Touch/Controller,
+      sofern die Box erreichbar ist.
+- [ ] Nach Release regelmäßig Meldungen über Verwechslungsgefahr/Markenrechte
+      prüfen und bei konkretem Konflikt Namen/Gestaltung zeitnah ändern.
 
-**Keine automatisierte Internet-Suche kann eine vollständige Markenfreigabe ersetzen.**
+## Technischer Release-Prozess
+
+1. Alle Tests erfolgreich, alle drei Builds per \`tools/mupiapp.py validate\`
+   geprüft, UTF-8 und Berechtigungen kontrolliert.
+2. Vorhandene App-ID \`community.tictactoe\` behalten, neue Versionsnummer und
+   den neuen sichtbaren Namen \`MuPi Kreuz & Kreis\` verwenden.
+3. Pakete nur in offizielles GitHub-Release des eigenen Repositories hochladen.
+4. Originalbytes aus dem **veröffentlichten Release** herunterladen und
+   SHA-256 überprüfen.
+5. Erst anschließend \`catalog/apps.json\` mit dem echten Release-Hash,
+   Version, Assetnamen und permissions aktualisieren; keinen erfundenen Hash.
+6. Keine automatische Installation auf fremden Geräten oder Umgehung der
+   lokalen Admin-Berechtigungsfreigabe.
+
+**Hinweis:** Gratis/Open Source verringert nicht automatisch die Haftung oder
+markenrechtliche Reichweite. Bei Abmahnung oder plausiblen Kollisionen
+vorübergehend den Eintrag zurücknehmen und nach Umbenennung erneut prüfen.

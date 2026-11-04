@@ -5,7 +5,7 @@ A `.mupiapp` is a ZIP archive with `manifest.json` **at archive root**. The root
 Example:
 
 ```text
-community.tictactoe.mupiapp (ZIP)
+mupi-kreuz-kreis.mupiapp (ZIP)
 ├── manifest.json
 ├── index.html
 ├── app.js

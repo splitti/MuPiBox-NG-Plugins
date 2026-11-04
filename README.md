@@ -19,7 +19,7 @@ cd MuPiBox-NG-Plugins
 python3 tools/build_example.py
 
 # Paketinhalt und Manifest sicherheitstechnisch prüfen
-python3 tools/mupiapp.py validate dist/tic-tac-toe.mupiapp
+python3 tools/mupiapp.py validate dist/mupi-kreuz-kreis.mupiapp
 
 # Lokal im Browser ausprobieren (noch kein Host-API-Zugriff)
 cd .build/tic-tac-toe && python3 -m http.server 8080
