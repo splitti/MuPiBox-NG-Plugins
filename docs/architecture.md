@@ -55,7 +55,7 @@ When app becomes active, host should negotiate audio focus with the existing pla
 2. **Open:** Native Qt touch runtime for Raspberry Pi 4/5; benchmark memory/CPU and check rendering, rotation and hardware gamepads.
 3. **Partly shipped in NG alpha.22:** Native musical notes through the permission-gated SDK and appliance PipeWire stream; complete media/stream audio focus is still open. Controller/touch lifecycle remains browser preview quality.
 4. **Open:** Per-app child approval, RFID launch, time budgets, complete parental enforcement and content API scopes.
-5. **Open:** Catalog backend, signed metadata, publisher identity, automatic updates and multi-version trust policy.
+5. **Shipped since alpha.19:** Curated GitHub Releases catalog with reviewed package metadata and SHA-256 verification; **open:** independent publisher signatures/identity and automatic updates with multi-version trust policy.
 
 The core can implement a different rendering engine as long as the public bridge behaves the same.
 
