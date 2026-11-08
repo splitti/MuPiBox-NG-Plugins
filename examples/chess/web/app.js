@@ -59,13 +59,13 @@
   let language='de', text=translations.de;
   let positions=[C.fromFen(C.START_FEN)], moveNames=[], durations={1:[],'-1':[]};
   let selected=-1, pending=null, cursor=C.index('e2'), lastMove=null, finished=null, thinking=false, aiTimer=null;
-  let turnStart=performance.now(), carried=0, paused=false;
+  let turnStart=performance.now(), carried=0, paused=false, cachedStatus=null;
   const state=()=>positions[positions.length-1];
   const duration=()=>carried + (paused?0:Math.max(0,(performance.now()-turnStart)/1000));
   const limit=()=>Number(els.limit.value)||0;
   const playerColor=()=>Number(els.color.value);
   const aiTurn=()=>els.mode.value==='ai' && state().t===-playerColor();
-  const currentStatus=()=>C.status(positions);
+  const currentStatus=()=>cachedStatus||(cachedStatus=C.status(positions));
   const isOver=()=>Boolean(finished)||currentStatus().done;
   const who=c=>c===1?text.white:text.black;
   const clockFormat=seconds=>{
@@ -142,7 +142,8 @@
     clearAI();
     const winner=-state().t;
     // A flag fall cannot win if the opponent cannot possibly checkmate.
-    finished=C.insufficient(state())?text.draw:text.timeout+' – '+who(winner)+' '+text.wins;
+    const canMate=state().b.some(p=>C.colorOf(p)===winner&&p.toLowerCase()!=='k');
+    finished=canMate?text.timeout+' – '+who(winner)+' '+text.wins:text.draw;
     selected=-1;pending=null;render();return true;
   }
   function makeMove(move){
@@ -152,7 +153,7 @@
     const time=duration();
     const notation=C.san(s,chosen);
     durations[s.t].push(time);
-    positions.push(C.apply(s,chosen));moveNames.push(notation);
+    positions.push(C.apply(s,chosen));moveNames.push(notation);cachedStatus=null;
     selected=-1;lastMove=[chosen[0],chosen[1]];resetClock();
     render();queueAI();
   }
@@ -193,7 +194,7 @@
   }
   function newGame(){
     clearAI();positions=[C.fromFen(C.START_FEN)];moveNames=[];durations={1:[],'-1':[]};
-    selected=-1;pending=null;lastMove=null;finished=null;cursor=C.index('e2');
+    selected=-1;pending=null;lastMove=null;finished=null;cachedStatus=null;cursor=C.index('e2');
     resetClock();render();queueAI();
   }
   function undo(){
@@ -204,7 +205,7 @@
     while(n-- && positions.length>1){
       positions.pop();moveNames.pop();durations[state().t].pop();
     }
-    selected=-1;pending=null;lastMove=null;finished=null;resetClock();render();queueAI();
+    selected=-1;pending=null;lastMove=null;finished=null;cachedStatus=null;resetClock();render();queueAI();
   }
   function claimDraw(){
     const claim=currentStatus().claim;
