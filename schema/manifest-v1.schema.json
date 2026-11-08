@@ -78,9 +78,6 @@
     },
     "display": {
       "type": "object",
-      "required": [
-        "orientation"
-      ],
       "additionalProperties": false,
       "properties": {
         "orientation": {
