@@ -96,6 +96,11 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(result["category"], "creative")
         self.assertFalse(validate_package(self.output)["display"]["showBackButton"])
 
+    def test_presentation_without_orientation(self):
+        self.manifest["display"] = {"showBackButton": False, "showSystemInfo": True}
+        result = validate_manifest(self.manifest, {"index.html"})
+        self.assertFalse(result["display"]["showBackButton"])
+
     def test_rejects_invalid_presentation_flags(self):
         self.manifest["display"] = {"orientation": "landscape"}
         for key, bad in (
