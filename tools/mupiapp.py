@@ -130,7 +130,7 @@ def validate_manifest(data: object, files: set[str]) -> dict:
     if display is not None:
         if not isinstance(display, dict) or set(display) - {"orientation", "minWidth", "minHeight", "showBackButton", "showSystemInfo", "fullScreen", "background"}:
             raise PackageError("invalid display object")
-        if display.get("orientation") not in ("any", "landscape", "portrait"):
+        if "orientation" in display and display["orientation"] not in ("any", "landscape", "portrait"):
             raise PackageError("display.orientation must be any/landscape/portrait")
         for flag in ("showBackButton", "showSystemInfo", "fullScreen"):
             if flag in display and type(display[flag]) is not bool:
