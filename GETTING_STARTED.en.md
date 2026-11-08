@@ -43,6 +43,37 @@ For Go/WASM, run `python3 tools/build_example.py` and inspect the `examples/tic-
 
 On **MuPiBox-NG 0.2.0-alpha.18 or newer** (developer-preview host), a parent/admin can open **Admin → Provider & Services → Community Apps / Plugins**, select the `.mupiapp` file, inspect and approve permissions, then install or open a browser preview. For **0.2.0-alpha.19 and newer**, the official catalog offers direct verified GitHub installation without downloading files yourself. In alpha.18 only manual upload is available. The native touchscreen runtime remains a separate feature.
 
+## Integrate with the native MuPiBox interface (NG alpha.30+)
+
+You can suggest where your app appears and which MuPiBox controls are visible. Add these **optional** fields to your app's `manifest.json` (the regular required fields still apply):
+
+```json
+{
+  "category": "creative",
+  "display": {
+    "orientation": "landscape",
+    "showBackButton": false,
+    "showSystemInfo": false,
+    "fullScreen": true,
+    "background": "app"
+  }
+}
+```
+
+The fragment above is *not* a complete manifest. Supported categories: `games`, `creative`, `learning`, `tools`, `other`. `showBackButton` controls the **entire native Back + title group**, not just the arrow; a separate `showTitle` option does not currently exist. `showSystemInfo` controls the right status indicators; fullscreen draws the HTML app edge-to-edge. An opaque HTML/CSS background covers the native theme even if `background` is `system`.
+
+**If you disable the native Back button, implement your own exit action:**
+
+```javascript
+document.querySelector('#back-button').addEventListener('click', () => {
+  window.MuPiBoxSDK.exit();
+});
+```
+
+Give this control a large touch target, visible label, and accessible name. `exit()` calls the existing trusted `app.exit` bridge; it does not access OS navigation and does not require a new permission. In local browser preview, it emits `preview.exit` instead of closing the tab. Provide a safe fallback for app navigation that does not rely solely on a controller. The host always retains control over the running app.
+
+Users may override the preferences independently for each installed app in **Admin → Provider & Dienste → Community-Apps / Plugins → Installierte Apps → Darstellung & Integration**. Host overrides survive app updates. See [the full manifest contract](docs/manifest-v1.md#native-app-appearance-and-navigation-ng-020-alpha30) and the [JSON schema](schema/manifest-v1.schema.json).
+
 ## Submit a plugin or SDK improvement via Pull Request
 
 1. **Fork** `splitti/MuPiBox-NG-Plugins` on GitHub and clone your fork.
