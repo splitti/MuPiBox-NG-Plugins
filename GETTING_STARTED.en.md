@@ -7,7 +7,7 @@
 1. The MuPiBox host checks the package, manifest and permissions before installing it.
 2. A web runtime launches the app in an isolated browser context; the host decides what it may do.
 3. Your app can use the public `MuPiBoxSDK` for input events, app-specific JSON storage, language/context and exit. Do not call internal MuPiBox APIs directly.
-4. Apps should work offline. Currently, no third-party network access or native executables are supported. Browser previews do **not** yet replace the native Pi touchscreen UI.
+4. Apps should work offline. Currently, no third-party network access or native executables are supported. Browser previews are distinct from the native Qt touchscreen runner available in NG alpha.20+; appearance integration requires alpha.30+.
 5. Official built-in games remain installed. In particular, **“MuPi und die verlorenen Noten” stays in the NG core**.
 
 ## Create your first plugin
