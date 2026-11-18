@@ -6,9 +6,9 @@ Dieses öffentliche Repository enthält einen **Entwurf der App-API v1**, ein SD
 
 > **Status: Developer Preview.** Seit **MuPiBox-NG 0.2.0-alpha.18** steht der webbasierte Plugin-Manager im Adminbereich zur Verfügung. Installation und isolierter Browser-Test von `.mupiapp`-Paketen sind möglich. Native Qt-Touch-Apps und der offizielle, geprüfte App-Katalog sind inzwischen verfügbar. Vollständiger Audiofokus und unabhängige Publisher-Signaturen fehlen weiterhin; ältere NG-Versionen haben keinen Plugin-Manager.
 
-## MuPi Water Battle (Community Preview, November 2026)
+## MuPi Water Battle (Spielekatalog, November 2026)
 
-Eine kindgerechte, eigenständige Flottensuche-App für das 5-Zoll-Touchdisplay: **Quick 8×8 (2 Boote), Classic 10×10 (5 Boote), Max 12×12 (7 Boote)**, drei KI-Stufen, orangefarbener MuPi, Offline-Spiel und Sound. Das Spiel befindet sich zur unabhängigen Prüfung **noch nicht** im offiziellen Katalog.
+Eine kindgerechte, eigenständige Flottensuche-App für das 5-Zoll-Touchdisplay: **Quick 8×8 (2 Boote), Classic 10×10 (5 Boote), Max 12×12 (7 Boote)**, drei KI-Stufen, orangefarbener MuPi, Offline-Spiel und Sound. Die geprüfte Version **0.2.0** ist im offiziellen Spielekatalog verzeichnet und als GitHub-Release verfügbar.
 
 - [Quellcode und Anleitung](examples/mupi-wasserschlacht/README.md)
 - [Paket erzeugen](tools/build_wasserschlacht.py): python3 tools/build_wasserschlacht.py
