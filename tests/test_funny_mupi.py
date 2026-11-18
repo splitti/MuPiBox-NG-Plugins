@@ -13,7 +13,7 @@ class FunnyMuPiTests(unittest.TestCase):
         self.assertEqual(manifest["apiVersion"], "1")
         self.assertEqual(manifest["category"], "other")
         self.assertEqual(set(manifest["permissions"]), {"audio", "controller"})
-        for path in ("entry", "icon"):
+        for path in ("entry", "icon", "cover"):
             self.assertTrue((APP / manifest[path]).is_file())
 
     def test_50_german_jokes(self):

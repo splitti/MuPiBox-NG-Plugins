@@ -15,7 +15,7 @@ def main():
         target = Path(folder) / "funny-mupi"
         shutil.copytree(SOURCE, target)
         shutil.copyfile(ROOT / "sdk" / "mupibox-sdk.js", target / "mupibox-sdk.js")
-        result = pack(target, DIST)
+        result = pack(target, DIST, excluded=('README.md',))
         print(f"{result['id']} {result['version']}: {DIST}")
 
 if __name__ == "__main__":
