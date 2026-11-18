@@ -9,10 +9,13 @@
   const art = Object.create(null);
   const spriteNames = [
     'mupi-back','mupi-back-run-left','mupi-back-run-right',
+    'mupi-tail','mupi-body',
+    'mupi-body-run-0','mupi-body-run-1','mupi-body-run-2',
+    'mupi-body-run-3','mupi-body-run-4','mupi-body-run-5',
     'tree-oak','tree-fir','tree-willow','fern','flower','mushroom',
     'reeds','rock','log','branch','vine','splash','stump','basket','boot','backdrop',
     'foreground','fallen-arch','waterfall','water-caustics','dragonfly',
-    'duck-bridge','stepping-stones','rail-post','wood-deck','forest-earth'
+    'duck-bridge','duck-bridge-rear','duck-bridge-front','stepping-stones','rail-post','wood-deck','forest-earth'
   ];
   for (const name of spriteNames) {
     const image = new Image();
@@ -39,6 +42,12 @@
   let state = game.fresh((Date.now() ^ 0x643bd8) >>> 0);
   let best = 0, lang = 'de', lastFrame = 0, lastLevel = 1, toastUntil = 0;
   let previousTerrain='river';
+  let controllerMode=false;
+  const gameElement=document.querySelector('.game');
+  function setControllerMode(active){
+    controllerMode=active;
+    gameElement.classList.toggle('controller-active',active);
+  }
   let panStart = null, gamepadPrevious = new Set(), crashAt = -9999;
 
   const languages = {
@@ -117,12 +126,13 @@
     }
   }
   function roadX(z, offset) {
-    const t = Math.max(0,Math.min(1, 1-z/95));
-    const bend=Math.sin(t*3.1+state.distance*.012)*23*Math.sin(t*Math.PI/2);
+    // Let objects travel PAST the player's plane rather than freezing at z=0.
+    const t = Math.max(0,Math.min(1.34, 1-z/95));
+    const bend=Math.sin(t*3.1+state.distance*.012)*23*Math.sin(Math.min(1,t)*Math.PI/2);
     return 400 + bend + offset*(58 + 302*Math.pow(t,1.6));
   }
   function project(z,lane){
-    const t=Math.max(0,Math.min(1,1-z/95));
+    const t=Math.max(0,Math.min(1.34,1-z/95));
     return {x:roadX(z,lane/1.5),y:147+299*Math.pow(t,1.75),scale:.18+.91*Math.pow(t,1.35),t:t};
   }
   function scenery() {
@@ -335,10 +345,19 @@
     // Compression is about the FOOT plane, so ducking never makes MuPi float.
     if(duck)ctx.scale(1,.69);
     else if(!jumping)ctx.rotate(wave*.018);
-    let sprite='mupi-back';
-    if(state.phase==='running'&&!duck&&!jumping){
-      sprite=wave>=0?'mupi-back-run-left':'mupi-back-run-right';
-    }
+    const phase=Math.floor((time*15.2/(Math.PI*2)*6))%6;
+    const sprite=state.phase==='running'&&!duck&&!jumping ?
+      'mupi-body-run-'+((phase+6)%6) : 'mupi-body';
+    // The tail is animated on a separate, strictly BACK layer. The body,
+    // arms, legs and head are always composited on top. No sprite frame
+    // can put the tail in front of a leg.
+    const pivotY=MUPI_FOOT_BOTTOM-MUPI_HEIGHT+MUPI_HEIGHT*(255/455);
+    ctx.save();
+    ctx.translate(0,pivotY);
+    ctx.rotate(jumping ? -.04 : Math.sin(time*8.1)*.09);
+    ctx.translate(0,-pivotY);
+    drawArt('mupi-tail',0,MUPI_FOOT_BOTTOM,MUPI_WIDTH,MUPI_HEIGHT);
+    ctx.restore();
     drawArt(sprite,0,MUPI_FOOT_BOTTOM,MUPI_WIDTH,MUPI_HEIGHT);
     ctx.restore();
 
@@ -359,17 +378,24 @@
     stump:'stump',reeds:'reeds',basket:'basket','stepping-stones':'stepping-stones','low-bridge':'duck-bridge',
     branch:'branch',vine:'vine',willow:'vine'
   };
-  function hazard(ob) {
-    if(ob.z>95||ob.z<-12)return;
+  function hazard(ob, bridgeLayer="all") {
+    if(ob.z>95||ob.z<-11)return;
     const p=project(ob.z,ob.lane===null?0:ob.lane);
+    // Once the object passes the running plane it grows and drops out of
+    // the viewport naturally. Collision and render use the SAME world z.
     const lowBridge=ob.item==='low-bridge';
     const name=hazardSprites[ob.item]||'rock';
     ctx.save();ctx.translate(p.x,p.y);ctx.scale(p.scale,p.scale);
     if(lowBridge){
       // An actual whole-width collider, matching the game's duck mechanic.
       // As the bridge approaches, the crossbeam lowers toward MuPi's head.
-      drawArt('duck-bridge',0,25,620,259);
-      if(ob.z < state.speed * .93 && ob.z > 3){
+      // Supports stay behind the player. Only the overhead crossbar can
+      // overlap MuPi, and it fades out after passing the collision plane.
+      const fade=ob.z<0?Math.max(0,1+ob.z/8):1;
+      const name=bridgeLayer==='rear'?'duck-bridge-rear':
+                 bridgeLayer==='front'?'duck-bridge-front':'duck-bridge';
+      drawArt(name,0,25,620,259,fade);
+      if(bridgeLayer!=='front'&&ob.z < state.speed * .93 && ob.z > 3){
         rounded(-22,-238,44,44,16,'#e9a446e8','#ffdf89');
         centeredText('↓',0,-216,36,'#ffffff','#7a4d2d');
       }
@@ -413,7 +439,7 @@
     }
     if(active)spans.push(active);
     for(const region of spans){
-      const off=region.type==='boardwalk'?.98:.88;
+      const off=region.type==='boardwalk'?1.005:1.125;
       const left=[],right=[];
       const n=Math.max(2,Math.ceil((region.far-region.near)/3.5));
       for(let i=0;i<=n;i++){
@@ -422,8 +448,29 @@
         left.push([roadX(z,-off),p.y]);
         right.push([roadX(z,off),p.y]);
       }
-      const vertices=left.concat(right.reverse());
-      polygon(vertices,region.type==='boardwalk'?'#a37751':'#8e8560');
+      // Organic edge at the terrain boundary. This gives the bridge a
+      // softened ramp and the forest path a scattered-soil transition,
+      // rather than instantly covering water with a straight-edged sheet.
+      const nearY=project(region.near,0).y;
+      const farY=project(region.far,0).y;
+      const flat=right.reverse();
+      const nearEdge=[],farEdge=[];
+      const nearL=left[left.length-1],nearR=flat[0];
+      const farR=flat[flat.length-1],farL=left[0];
+      for(let i=1;i<9;i++){
+        const t=i/9;
+        const wobble=(Math.sin(t*17+state.distance*.035)+Math.sin(t*29))*
+          (region.type==='forest'?4:1.3);
+        nearEdge.push([nearL[0]+(nearR[0]-nearL[0])*t,nearY+wobble]);
+      }
+      for(let i=8;i>=1;i--){
+        const t=i/9;
+        const wobble=(Math.sin(t*21+state.distance*.021)+Math.sin(t*15))*
+          (region.type==='forest'?4:1.3);
+        farEdge.push([farL[0]+(farR[0]-farL[0])*t,farY+wobble]);
+      }
+      const vertices=left.concat(nearEdge,flat,farEdge);
+      polygon(vertices,region.type==='boardwalk'?'#9e7858':'#7d8560');
       const tex=tiles[region.type];
       if(tex&&tex.complete&&tex.naturalWidth){
         ctx.save();
@@ -435,6 +482,24 @@
         ctx.drawImage(tex,0,-480+scroll,800,560);
         ctx.drawImage(tex,0,80+scroll,800,560);
         ctx.restore();
+      }
+    }
+    // Small physical transitions keep the corridor visibly connected:
+    // stones at river/forest entrances; bridge end rails at boardwalk.
+    for(let offset=-1;offset<=1;offset++){
+      for(const boundary of [195,360,530,650]){
+        const nearby=(Math.floor(state.distance/650))*650+boundary;
+        for(const world of [nearby,nearby+650]){
+          const z=world-state.distance;
+          if(z<0||z>95)continue;
+          const p=project(z,0);
+          const x=roadX(z,offset*.69);
+          if(boundary===195||boundary===360){
+            drawArt('rock',x,p.y+4*p.scale,45*p.scale,26*p.scale,.83);
+          }else if(boundary===530||boundary===650){
+            drawArt('fern',x,p.y+4*p.scale,38*p.scale,44*p.scale,.88);
+          }
+        }
       }
     }
     // Perspective-correct board joints and planted trail edges.
@@ -472,26 +537,36 @@
     }
   }
   function environmentFeatures() {
-    // A real illustrated arch sits *behind* running hazards and is not a
-    // collision object. The waterfall belongs to the scenery on the bank.
-    const p=project(75,0);
-    drawArt('fallen-arch',p.x,251,440,188,.95);
-    const shimmer=.86+.08*Math.sin(state.time*3.2);
-    drawArt('waterfall',731,326,257,202,shimmer);
-    // Cascading foam sparkles near the fixed bank waterfall.
-    for(let i=0;i<12;i++){
-      const x=679+(i*13.5)%106;
-      const y=277+(i*17+state.time*27)%35;
-      ellipse(x,y,1.5+(i%3)*.55,1+(i%2)*.7,'#ecfff0b5');
+    // Distinctive landmarks have absolute WORLD locations and now approach,
+    // grow, pass the camera, and disappear, rather than being a stationary
+    // overlay at x=731 / y=326 in every running frame.
+    const loop=650;
+    const lap=Math.floor(state.distance/loop);
+    for(let n=lap;n<=lap+1;n++){
+      const origin=n*loop;
+      const archZ=origin+102-state.distance;
+      if(archZ>=-9&&archZ<96){
+        const p=project(archZ,0);
+        // The old artwork is decorative, NOT a collision hazard. Drawn
+        // behind MuPi and real obstacle sprites to prevent false hit cues.
+        drawArt('fallen-arch',p.x,p.y+10*p.scale,480*p.scale,202*p.scale,.9);
+      }
+      const fallZ=origin+52-state.distance;
+      if(fallZ>=-9&&fallZ<96){
+        const p=project(fallZ,0);
+        const wx=roadX(fallZ,2.0);
+        const shimmering=.85+.1*Math.sin(state.time*3.8);
+        drawArt('waterfall',wx,p.y+6*p.scale,265*p.scale,203*p.scale,shimmering);
+      }
     }
-    drawArt('foreground',400,480,800,480,.97);
-    // A small living-world detail, safely outside the lanes and HUD.
+    // Foreground plants frame the camera without participating in collisions.
+    drawArt('foreground',400,480,800,480,.92);
+    // A moving insect provides some environmental motion (screen-space).
     const dragonX=677+Math.sin(state.time*.8)*21;
     const dragonY=172+Math.sin(state.time*3.4)*14;
     ctx.save();ctx.translate(dragonX,dragonY);
     ctx.rotate(Math.sin(state.time*2)*.15);
-    const flutter=.89+Math.sin(state.time*24)*.1;
-    ctx.scale(flutter,1);
+    ctx.scale(.89+Math.sin(state.time*24)*.1,1);
     drawArt('dragonfly',0,0,49,36,.87);
     ctx.restore();
   }
@@ -503,11 +578,13 @@
     }
     sky(); road(); terrain(); scenery(); environmentFeatures();
     const objects=state.obstacles.slice().sort((a,b)=>b.z-a.z);
-    objects.filter(o=>o.z>2.5 || o.item!=='low-bridge').forEach(hazard);
+    objects.filter(o=>o.z>2.5 || o.item!=='low-bridge').forEach(o=>hazard(o));
+    const nearestBridges=objects.filter(o=>o.z<=2.5&&o.item==='low-bridge');
+    nearestBridges.forEach(o=>hazard(o,'rear'));
     const x=roadX(0,state.visualLane/1.5);
     muPi(x,435,game.jumpHeight(state),game.ducking(state),state.time);
-    // The near bridge crossbeam overlaps MuPi, so passing UNDER is visible.
-    objects.filter(o=>o.z<=2.5 && o.item==='low-bridge').forEach(hazard);
+    // Only the beam occupies the foreground, not the entire bridge/supports.
+    nearestBridges.forEach(o=>hazard(o,'front'));
     ctx.restore();
     distanceLabel.textContent=Math.floor(state.distance).toLocaleString(lang==='de'?'de-DE':'en-US');
     bestLabel.textContent=best.toLocaleString(lang==='de'?'de-DE':'en-US')+' m';
@@ -598,6 +675,7 @@
     game.act(state,action);
   }
   function controllerButton(button) {
+    setControllerMode(true);
     const map={LEFT:'left',RIGHT:'right',UP:'jump',DOWN:'duck',
       A:'jump',B:'duck',X:'jump',Y:'duck',LB:'left',RB:'right',
       L1:'left',R1:'right',START:'pause',MENU:'pause',BACK:'exit',SELECT:'exit'};
@@ -638,6 +716,7 @@
   document.addEventListener('keydown',event=>{
     const action=keyMap[event.code];
     if(!action)return;
+    setControllerMode(true);
     event.preventDefault();
     if(event.repeat)return;
     control(action);
@@ -645,13 +724,14 @@
   for(const id of ['left','right','jump','duck']){
     const button=document.getElementById(id);
     button.addEventListener('pointerdown', event=>{
-      event.preventDefault();control(id);
+      event.preventDefault();setControllerMode(false);control(id);
     });
   }
   document.getElementById('exit').addEventListener('click',()=>control('exit'));
   pauseButton.addEventListener('click',()=>control('pause'));
   primary.addEventListener('click',begin);
   canvas.addEventListener('pointerdown',event=>{
+    if(event.pointerType==='touch')setControllerMode(false);
     panStart={x:event.clientX,y:event.clientY};
   });
   canvas.addEventListener('pointerup',event=>{
@@ -681,14 +761,19 @@
         state.jumpAge=mode==='jump'?.23:-1;
         state.duckAge=mode==='duck'?.17:-1;
         state.phase='running';
+        setControllerMode(true);
         renderOverlay();render();
         return true;
       },
       snapshot() {
         return {
           phase:state.phase,distance:state.distance,lane:state.lane,
+          visualLane:state.visualLane,speed:state.speed,
+          jumpAge:state.jumpAge,duckAge:state.duckAge,waves:state.waves,
+          phaseJump:state.jumpAge,phaseDuck:state.duckAge,
           terrain:state.lastTerrain,obstacles:state.obstacles.map(o=>({...o})),
-          missingSprites:Object.keys(art).filter(name=>!art[name].complete||!art[name].naturalWidth)
+          missingSprites:Object.keys(art).filter(name=>!art[name].complete||!art[name].naturalWidth),
+          controllerMode:gameElement.classList.contains('controller-active')
         };
       }
     });

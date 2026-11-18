@@ -10,6 +10,7 @@
   // Generous timing for controller and touch reactions.
   const JUMP_DURATION = 1.20;
   const DUCK_DURATION = 1.25;
+  const HIT_RADIUS = .55; // width of player + obstacle in lane units
   const kinds = {
     jump: ['log', 'rock', 'root', 'ripple', 'boot', 'stepping-stones'],
     duck: ['branch', 'vine', 'willow', 'low-bridge'],
@@ -111,7 +112,9 @@
   }
 
   function canPass(s, obstacle) {
-    if (obstacle.lane!==null && s.lane!==obstacle.lane) return true;
+    // The visual and physics positions MUST agree while changing lanes.
+    // A requested destination does not teleport MuPi past an obstacle.
+    if (obstacle.lane!==null && Math.abs(s.visualLane-obstacle.lane)>HIT_RADIUS) return true;
     if (obstacle.kind === 'jump') return jumpHeight(s) >= 28;
     if (obstacle.kind === 'duck') return ducking(s) && s.duckAge >= 0.08;
     return false;
@@ -162,6 +165,6 @@
 
   return Object.freeze({
     fresh, act, step, jumpHeight, ducking, speedAt, intervalAt,
-    JUMP_DURATION, DUCK_DURATION, LANES, kinds, terrainAt, ZONES
+    JUMP_DURATION, DUCK_DURATION, HIT_RADIUS, LANES, kinds, terrainAt, ZONES
   });
 });

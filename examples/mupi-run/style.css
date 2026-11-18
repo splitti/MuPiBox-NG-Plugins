@@ -72,3 +72,15 @@ button:focus-visible { outline: 3px solid #fcef71; outline-offset: 3px; }
   .logo{width:132px;height:47px;margin-top:-7px;}
   .score,.best{min-width:71px;}
 }
+
+/* Controller and keyboard users need an unobstructed view of MuPi in all lanes.
+   Touch controls return immediately when the user touches the game. */
+.game.controller-active .controls { opacity:0; pointer-events:none; }
+.game.controller-active .controls .pad { pointer-events:none; }
+/* Keep two 52px touch targets at the outer edges, off the runner's side lanes. */
+@media (min-width:621px) {
+  .controls { left:7px;right:7px;bottom:5px; }
+  .control-group { gap:4px; }
+  .pad { width:52px;height:57px; border-radius:14px; }
+  .pad.action { width:58px;height:60px; }
+}

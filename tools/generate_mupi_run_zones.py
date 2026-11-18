@@ -16,7 +16,8 @@ def save(name,w,h,body):
  p.write_text(A.wrap(body,w,h),encoding='utf-8')
  subprocess.run(['rsvg-convert','--format','png','-w',str(w),'-h',str(h),'-o',str(OUT/(name+'.png')),str(p)],check=True)
  print(name,(OUT/(name+'.png')).stat().st_size)
-def duck_bridge():
+def duck_bridge(layer="all"):
+ rng.seed(9007)  # exact same leaves across far, near and crossbar layers
  # Wide low-hanging beam with two wooden supports. Characters can crouch
  # beneath the center bar, which is drawn at the precise obstruction height.
  s=''
@@ -26,6 +27,10 @@ def duck_bridge():
   s+=A.path(f'M{x-7} 229L{x-3} 110','none','#d3a36c',4)
   for yy in (130,195):
    s+=A.path(f'M{x-20} {yy}q22 -9 43 0','none','#463d36',6)
+ if layer=="rear":
+  return s
+ if layer=="front":
+  s=""
  # Low bar across all three lanes at runner's upper-body height.
  s+=A.path('M41 112Q175 86 350 99Q521 86 684 105L688 151Q531 128 352 143Q185 133 42 155Z','url(#wood)','#4c3935',8)
  s+=A.path('M55 108Q198 101 348 117Q535 94 671 112','none','#f5c283',8,'opacity=".72"')
@@ -121,6 +126,8 @@ def earth_texture():
  im.save(OUT/'forest-earth.png',optimize=True)
 def main():
  save('duck-bridge',724,286,duck_bridge())
+ save('duck-bridge-rear',724,286,duck_bridge('rear'))
+ save('duck-bridge-front',724,286,duck_bridge('front'))
  save('stepping-stones',375,260,stones())
  save('rail-post',205,251,rail())
  plank_texture();earth_texture()

@@ -104,3 +104,30 @@ test('early tutorial includes mandatory duck bridge and a stepping stone jump la
   while(s.waves<3)G.step(s,.05);
   assert.ok(s.obstacles.some(x=>x.item==='low-bridge'&&x.lane===null));
 });
+
+test('collision uses rendered position during lane transition, not destination',()=>{
+  const s=G.fresh(33);G.act(s,'start');
+  s.obstacles=[{lane:0,z:2.04,kind:'avoid',item:'stump',checked:false}];
+  G.act(s,'right');
+  G.step(s,.02);
+  assert.equal(s.lane,1);
+  assert.ok(s.visualLane<.6);
+  assert.equal(s.phase,'over','cannot evade before body visibly reaches safe lane');
+
+  const clear=G.fresh(33);G.act(clear,'start');
+  G.act(clear,'right');
+  for(let i=0;i<8;i++)G.step(clear,.025);
+  assert.ok(clear.visualLane>.8,'avatar visibly moved to next lane');
+  clear.obstacles=[{lane:0,z:2.04,kind:'avoid',item:'stump',checked:false}];
+  G.step(clear,.02);
+  assert.equal(clear.phase,'running','collision agrees with rendered location');
+  assert.equal(clear.completedDodges,1);
+});
+
+test('obstacles in destination lane still hit as the character arrives',()=>{
+  const s=G.fresh(33);G.act(s,'start');G.act(s,'right');
+  for(let i=0;i<6;i++)G.step(s,.025);
+  s.obstacles=[{lane:1,z:2.04,kind:'avoid',item:'basket',checked:false}];
+  G.step(s,.02);
+  assert.equal(s.phase,'over');
+});

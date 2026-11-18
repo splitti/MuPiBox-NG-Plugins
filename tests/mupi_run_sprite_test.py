@@ -28,3 +28,24 @@ world_foot=435
 rendered_foot=world_foot+bottom_offset-drawn_h*(source_h-foot_source_y)/source_h
 assert abs(rendered_foot-world_foot)<.001
 print('MuPi foot anchoring and two distinct running poses: PASS')
+
+
+# Strict alpha-layer separation protects against tail crossing in front of the
+# legs in ANY of the six frames; the entire tail PNG is drawn first at runtime.
+tail=Image.open(ART/'mupi-tail.png').convert('RGBA')
+body=Image.open(ART/'mupi-body.png').convert('RGBA')
+assert tail.getchannel('A').getbbox(), 'Missing caudal fin'
+assert body.getchannel('A').getbbox(), 'Missing body layer'
+body_poses=[Image.open(ART/f'mupi-body-run-{i}.png').convert('RGBA') for i in range(6)]
+assert all(i.size==tail.size for i in body_poses)
+assert len({i.tobytes() for i in body_poses})==6,'Must have six distinct foot poses'
+for image in body_poses:
+    assert image.getchannel('A').crop((0,360,375,455)).getbbox() is None
+print('Tail is separate BEHIND body; six leg phases present: PASS')
+# Bridge split: front contains only overhead beam, rear contains support legs.
+front=Image.open(ART/'duck-bridge-front.png').convert('RGBA')
+rear=Image.open(ART/'duck-bridge-rear.png').convert('RGBA')
+assert front.size==rear.size==(724,286)
+assert front.getchannel('A').crop((0,245,724,286)).getbbox() is None, 'Beam should not paint on feet'
+assert rear.getchannel('A').crop((0,245,724,286)).getbbox(), 'Rear layer must have support posts'
+print('Bridge rear posts and foreground-only beam: PASS')

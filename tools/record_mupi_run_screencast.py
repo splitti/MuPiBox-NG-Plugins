@@ -2,9 +2,9 @@
 """Record REAL browser gameplay of MuPi Run as a 800x480 H.264 MP4.
 
 Uses Chromium's Page.startScreencast CDP events and in-game preview controls.
-Clips are recorded in the real gameplay canvas with real animations/collisions.
-A scene jump switches between the three running terrains, so this is a montage,
-not a claimed continuous run. No synthetic/concept frames are inserted.
+The game starts normally. An automated keyboard player observes real gameplay
+state to react to obstacle approach. No setScene calls, no resets, no distance
+skips, no fake frames. The game remains a normal playable runner throughout.
 """
 from __future__ import annotations
 
@@ -26,8 +26,8 @@ ROOT=Path(__file__).resolve().parents[1]
 APP=ROOT/'examples/mupi-run'
 OUTPUT=APP/'mupi-run-screencast.mp4'
 PORT=9483
-FPS=15
-DURATION=20.0
+FPS=30
+DURATION=36.0
 
 async def main():
     chrome=shutil.which('chromium') or shutil.which('chromium-browser')
@@ -64,7 +64,8 @@ async def main():
                 frames=[]
                 seq=0
                 start=None
-                asynchronous_tasks=[]
+                observed=[]
+                input_counts={name:0 for name in ('left','right','jump','duck')}
 
                 async def call(method,params=None,wait=True):
                     nonlocal seq
@@ -123,41 +124,89 @@ async def main():
                         'maxWidth':800,'maxHeight':480,'everyNthFrame':1
                     })
                     start=time.monotonic()
-                    async def at(second,cmd,caption):
-                        remaining=start+second-time.monotonic()
-                        if remaining>0:await asyncio.sleep(remaining)
-                        expr=cmd
-                        result=await call('Runtime.evaluate',{'expression':expr,'returnByValue':True})
-                        if result.get('exceptionDetails'):
-                            raise RuntimeError(caption+': '+str(result['exceptionDetails']))
-                        print(f"{second:4.1f}s: {caption}",flush=True)
+                    key_codes={'left':'ArrowLeft','right':'ArrowRight',
+                        'jump':'ArrowUp','duck':'ArrowDown'}
 
-                    def scene(distance,obstacles,lane=0,mode='running'):
-                        return 'window.__MuPiRunPreview.setScene('+','.join(map(json.dumps,[
-                            distance,obstacles,lane,mode
-                        ]))+')'
+                    def choose_action(s):
+                        current=[o for o in s['obstacles']
+                                 if not o['checked'] and 0<o['z']<56]
+                        current.sort(key=lambda o:o['z'])
+                        if not current: return None
+                        item=current[0]
+                        group=[o for o in current if abs(o['z']-item['z'])<3]
+                        lane=s['lane']
+                        visual=s['visualLane']
+                        speed=s['speed']
+                        safe=[l for l in (-1,0,1) if not any(o['lane']==l for o in group)]
+                        if item['lane'] is None:
+                            if item['z']<speed*.66+2 and s['duckAge']<0 and s['jumpAge']<0:
+                                return 'duck'
+                            return None
+                        # First tutorial rock: deliberately run toward it,
+                        # then JUMP, so the recording demonstrates real input.
+                        if (s['distance']<65 and item['kind']=='jump' and
+                            item['z']>32 and lane!=item['lane']):
+                            return 'left' if item['lane']<lane else 'right'
+                        occupant=next((o for o in group if o['lane'] is not None
+                            and abs(o['lane']-visual)<.65),None)
+                        if occupant is None:return None
+                        if occupant['kind']=='jump':
+                            if item['z']<speed*.67+2 and s['jumpAge']<0:
+                                return 'jump'
+                            return None
+                        if occupant['kind']=='duck':
+                            if item['z']<speed*.67+2 and s['duckAge']<0 and s['jumpAge']<0:
+                                return 'duck'
+                            return None
+                        if safe:
+                            dest=min(safe,key=lambda l:abs(l-lane))
+                            if dest!=lane:return 'left' if dest<lane else 'right'
+                        return None
 
-                    tasks=[
-                        (1.6,"document.getElementById('primary').click()", 'Spiel gestartet'),
-                        (1.9,scene(45,[{'lane':-1,'item':'rock','kind':'jump','z':61}]),'Flussbett'),
-                        (3.2,"document.dispatchEvent(new KeyboardEvent('keydown',{code:'ArrowRight',bubbles:true}))",'Spurwechsel rechts'),
-                        (4.7,scene(115,[{'lane':None,'item':'low-bridge','kind':'duck','z':26}]),'Duckbrücke'),
-                        (5.75,"document.dispatchEvent(new KeyboardEvent('keydown',{code:'ArrowDown',bubbles:true}))",'Ducken unter der Brücke'),
-                        (8.0,scene(252,[{'lane':0,'item':'stump','kind':'avoid','z':29}]),'Holzsteg'),
-                        (9.05,"document.dispatchEvent(new KeyboardEvent('keydown',{code:'ArrowRight',bubbles:true}))",'Baumstumpf ausweichen'),
-                        (11.35,scene(404,[{'lane':0,'item':'stepping-stones','kind':'jump','z':34}]),'Waldboden'),
-                        (12.52,"document.dispatchEvent(new KeyboardEvent('keydown',{code:'ArrowUp',bubbles:true}))",'Sprung über Felsen'),
-                        (15.3,scene(54,[{'lane':1,'item':'basket','kind':'avoid','z':52}]),'Flusslauf'),
-                        (16.8,"document.dispatchEvent(new KeyboardEvent('keydown',{code:'ArrowLeft',bubbles:true}))",'Ausweichen links'),
-                    ]
-                    for second,expr,caption in tasks:
-                        await at(second,expr,caption)
-                    await asyncio.sleep(max(0.01,start+DURATION-time.monotonic()))
+                    # 1.2 seconds of start screen; then a fully continuous
+                    # run with the same collision rules as on MuPiBox.
+                    await asyncio.sleep(1.2)
+                    await call('Runtime.evaluate', {
+                        'expression':"document.getElementById('primary').click()"
+                    })
+                    print('Started actual continuous run at t=1.2 s',flush=True)
+                    prev=0
+                    while time.monotonic()-start<DURATION:
+                        elapsed=time.monotonic()-start
+                        reply=await call('Runtime.evaluate',{
+                            'expression':"JSON.stringify(window.__MuPiRunPreview.snapshot())",
+                            'returnByValue':True
+                        })
+                        snapshot=json.loads(reply['result']['value'])
+                        if snapshot['phase']=='over':
+                            raise RuntimeError('Player crashed during recording at '
+                                +str(round(snapshot['distance'],2))+' m')
+                        if observed and snapshot['distance']+1e-5<observed[-1][1]:
+                            raise RuntimeError('Non-monotonic meter counter detected')
+                        observed.append((elapsed,snapshot['distance'],snapshot['terrain']))
+                        action=choose_action(snapshot)
+                        if action:
+                            code=key_codes[action]
+                            await call('Runtime.evaluate',{
+                                'expression':"document.dispatchEvent(new KeyboardEvent("
+                                    "'keydown',{code:"+json.dumps(code)+",bubbles:true}))"
+                            })
+                            input_counts[action]+=1
+                        # 14–18 reaction checks per second; the actual
+                        # Chromium renderer continues freely in between.
+                        await asyncio.sleep(.067)
                     await call('Page.stopScreencast')
                     await asyncio.sleep(.25)
-                    print('Captured browser frames:',len(frames),flush=True)
-                    if len(frames)<55:
-                        raise RuntimeError('Too few actual browser frames for a screencast')
+                    print('Captured frames:',len(frames),'inputs',input_counts,flush=True)
+                    print('Distance',round(observed[-1][1],1),'m; terrains',
+                          sorted(set(x[2] for x in observed)),flush=True)
+                    if len(frames)<DURATION*10:
+                        raise RuntimeError('Too few actual rendered frames')
+                    if observed[-1][1]<530:
+                        raise RuntimeError('Did not reach all track segments')
+                    if not all(input_counts[a]>0 for a in ('left','right','jump','duck')):
+                        raise RuntimeError('Missing action from the actual recording')
+
                 finally:
                     reader.cancel()
                     try:await reader
@@ -190,7 +239,7 @@ async def main():
             # Thumbnail from actual video frame, never simulated.
             subprocess.run([
                 encoder,'-hide_banner','-loglevel','error','-y',
-                '-ss','6.0','-i',str(OUTPUT),'-frames:v','1',
+                '-ss','16.0','-i',str(OUTPUT),'-frames:v','1',
                 str(APP/'screencast-poster.webp')
             ],check=True,timeout=30)
         finally:
