@@ -9,7 +9,8 @@
   const art = Object.create(null);
   const spriteNames = [
     'mupi-back','tree-oak','tree-fir','tree-willow','fern','flower','mushroom',
-    'reeds','rock','log','branch','vine','splash','stump','basket','boot','backdrop'
+    'reeds','rock','log','branch','vine','splash','stump','basket','boot','backdrop',
+    'foreground','fallen-arch','waterfall','water-caustics','dragonfly'
   ];
   for (const name of spriteNames) {
     const image = new Image();
@@ -95,10 +96,10 @@
       ctx.fillStyle=bg;ctx.fillRect(0,0,800,480);
     }
     // Distant firs, their trunks and delicate crowns remain behind the water.
-    for(let i=0;i<9;i++){
+    for(let i=0;i<6;i++){
       const x=((i*191+23+(state.distance*.07))%1030)-115;
       const horizon=194+(i%4)*10;
-      drawArt(i%3===0?'tree-oak':'tree-fir',x,horizon,70+(i%3)*17,85+(i%3)*20,.38+(i%3)*.08);
+      drawArt(i%3===0?'tree-oak':'tree-fir',x,horizon,70+(i%3)*17,85+(i%3)*20,.26+(i%3)*.08);
     }
     const rays=ctx.createLinearGradient(475,80,690,430);
     rays.addColorStop(0,'#fff6c021');rays.addColorStop(.6,'#f2edba12');rays.addColorStop(1,'#f2f9d100');
@@ -185,18 +186,59 @@
       return left.concat(right.reverse());
     }
     polygon(ribbon(1.16),'#536e62');
-    polygon(ribbon(1.11),'#aca47a');
+    polygon(ribbon(1.11),'#698b72');
+    polygon(ribbon(1.045),'#a8b78b');
     const water=ctx.createLinearGradient(0,150,0,480);
-    water.addColorStop(0,'#80ccb4');water.addColorStop(.48,'#42a5af');water.addColorStop(1,'#287e9c');
+    water.addColorStop(0,'#b0dbb5');water.addColorStop(.36,'#4faea7');
+    water.addColorStop(.75,'#247d91');water.addColorStop(1,'#175b80');
     polygon(ribbon(.995),'#2b7869');
     polygon(ribbon(.97),water);
+    // Water surface is independently illustrated and clipped to the
+    // winding river, not a flat blue road or a global backdrop.
+    const surface=art['water-caustics'];
+    if(surface && surface.complete && surface.naturalWidth) {
+      const vertices=ribbon(.968);
+      ctx.save();ctx.beginPath();ctx.moveTo(vertices[0][0],vertices[0][1]);
+      for(let i=1;i<vertices.length;i++)ctx.lineTo(vertices[i][0],vertices[i][1]);
+      ctx.closePath();ctx.clip();
+      const drift=(state.distance*2.7)%410;
+      ctx.globalAlpha=.68;
+      ctx.drawImage(surface,0,-375+drift,800,590);
+      ctx.drawImage(surface,0,215+drift,800,590);
+  // Warm light from the forest canopy scatters across the moving stream.
+  const solar=ctx.createRadialGradient(590,225,8,580,228,244);
+  solar.addColorStop(0,'#fff5b568');solar.addColorStop(.33,'#f4ec9f2a');
+  solar.addColorStop(1,'#e1f1ae00');
+  ctx.fillStyle=solar;ctx.fillRect(0,145,800,335);
+    ctx.restore();
+
+    }
+    // Winding bright waterline follows the shore through perspective,
+    // rather than resembling a paved road with painted dividers.
+    for(let side of [-1,1]){
+      const shore=[];
+      for(let j=0;j<18;j++){
+        const z=94-j*5.2;
+        const projection=project(z,0);
+        const wiggle=Math.sin(j*1.65+state.distance*.19)*2.2*projection.t;
+        shore.push([roadX(z,side*.967)+wiggle,projection.y]);
+      }
+      ctx.beginPath();ctx.moveTo(shore[0][0],shore[0][1]);
+      for(let j=1;j<shore.length;j++){
+        const a=shore[j-1],b=shore[j];
+        ctx.quadraticCurveTo(a[0],a[1],(a[0]+b[0])/2,(a[1]+b[1])/2);
+      }
+      ctx.strokeStyle='#d1f7deb3';ctx.lineWidth=3;ctx.stroke();
+    }
     // Darker channel under current and moving hand-drawn highlights.
     polygon(ribbon(.87),'#2b9fa51b');
-    for(let i=0;i<29;i++){
+    for(let i=0;i<21;i++){
       const z=(i*7.7+state.distance*(.70+(i%3)*.10))%94;
       const p=project(z,0), t=p.t;
-      for(let k=-1;k<=1;k++){
-        const x=roadX(z,k*.36)+(i%2?4:-4)*t,y=p.y+(i%2)*1.5;
+      // The glints drift along irregular currents; avoid artificial lane dashes.
+      for(let k=0;k<2;k++){
+        const channel=Math.sin(i*5.19+k*2.67)*.66;
+        const x=roadX(z,channel)+(i%2?4:-4)*t,y=p.y+(i%2)*1.5;
         const length=(i%5===0?18:8)*(0.4+t);
         ctx.beginPath();
         ctx.moveTo(x-length,y+(i%3));
@@ -205,12 +247,12 @@
         ctx.lineWidth=Math.max(1,2.5*t);ctx.stroke();
       }
     }
-    // Glints designate playable channels without artificial road markings.
-    for(const boundary of [-1/3,1/3]){
-      for(let i=0;i<10;i++){
-        const z=(i*11.7+state.distance)%95,p=project(z,0),x=roadX(z,boundary);
-        line(x-2*p.scale,p.y,x+8*p.scale,p.y-1,'#9cece29e',Math.max(1,p.scale*2));
-      }
+    // Bubbles and small sunlit eddies in the shallows, non-collidable.
+    for(let i=0;i<21;i++){
+      const z=(i*9.13+state.distance*.78)%94,p=project(z,0);
+      const channel=Math.sin(i*4.17)*.78;
+      const x=roadX(z,channel);
+      ellipse(x,p.y+2,Math.max(1,p.scale*(2+i%4)),Math.max(.6,p.scale*1.8),'#c8f9e56b');
     }
     // Semi-submerged stones cast soft shadows under the flowing water.
     for(let i=0;i<16;i++){
@@ -282,13 +324,37 @@
     }
     ctx.restore();
   }
+  function environmentFeatures() {
+    // A real illustrated arch sits *behind* running hazards and is not a
+    // collision object. The waterfall belongs to the scenery on the bank.
+    const p=project(75,0);
+    drawArt('fallen-arch',p.x,251,440,188,.95);
+    const shimmer=.86+.08*Math.sin(state.time*3.2);
+    drawArt('waterfall',731,326,257,202,shimmer);
+    // Cascading foam sparkles near the fixed bank waterfall.
+    for(let i=0;i<12;i++){
+      const x=679+(i*13.5)%106;
+      const y=277+(i*17+state.time*27)%35;
+      ellipse(x,y,1.5+(i%3)*.55,1+(i%2)*.7,'#ecfff0b5');
+    }
+    drawArt('foreground',400,480,800,480,.97);
+    // A small living-world detail, safely outside the lanes and HUD.
+    const dragonX=677+Math.sin(state.time*.8)*21;
+    const dragonY=172+Math.sin(state.time*3.4)*14;
+    ctx.save();ctx.translate(dragonX,dragonY);
+    ctx.rotate(Math.sin(state.time*2)*.15);
+    const flutter=.89+Math.sin(state.time*24)*.1;
+    ctx.scale(flutter,1);
+    drawArt('dragonfly',0,0,49,36,.87);
+    ctx.restore();
+  }
   function render() {
     ctx.save();
     if (state.phase==='over' && performance.now()-crashAt<330) {
       const amplitude=(1-(performance.now()-crashAt)/330)*5;
       ctx.translate(Math.sin(performance.now()*.12)*amplitude,Math.cos(performance.now()*.17)*amplitude);
     }
-    sky(); road(); scenery();
+    sky(); road(); scenery(); environmentFeatures();
     state.obstacles.slice().sort((a,b)=>b.z-a.z).forEach(hazard);
     const x=roadX(0,state.visualLane/1.5);
     muPi(x,435,game.jumpHeight(state),game.ducking(state),state.time);

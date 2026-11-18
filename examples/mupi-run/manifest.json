@@ -2,14 +2,17 @@
   "apiVersion": "1",
   "id": "community.mupi-run",
   "name": "MuPi Run",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.png",
   "cover": "cover.png",
   "author": "MuPiBox-NG Community",
-  "description": "MuPi rennt als orangefarbenes Axolotl von hinten durch ein illustriertes Wald-Flussbett mit freigestellten Bäumen, Felsen, Ästen und steigender Schwierigkeit.",
-  "permissions": ["storage", "controller"],
+  "description": "MuPi Run mit orangefarbenem Axolotl aus der Rückansicht: atmosphärisches Wald-Flussbett, animierte Wasserspiegelungen, Wasserfall, Baum-Bogen und freigestellte Illustrationen.",
+  "permissions": [
+    "storage",
+    "controller"
+  ],
   "category": "games",
   "display": {
     "orientation": "landscape",

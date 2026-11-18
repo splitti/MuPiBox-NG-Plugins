@@ -59,7 +59,20 @@ async def main():
             await call('Page.enable')
             await call('Runtime.enable')
             await call('Emulation.setDeviceMetricsOverride',{'width':800,'height':480,'deviceScaleFactor':1,'mobile':False})
+            # Use deterministic German labels in screenshots without changing
+            # the actual MuPiBox locale handling or the game's SDK.
+            await call('Page.addScriptToEvaluateOnNewDocument', {
+                'source': "Object.defineProperty(navigator, 'language', {configurable:true,get:()=> 'de-DE'});"
+            })
+            await call('Page.navigate', {'url':f'file://{APP}/index.html'})
             await asyncio.sleep(1)
+            assets=await call('Runtime.evaluate', {
+                'expression':"JSON.stringify(Array.from(document.images).filter(x=>!x.complete || !x.naturalWidth).map(x=>x.src))",
+                'returnByValue':True
+            })
+            missing=json.loads(assets['result']['value'])
+            if missing:
+                raise RuntimeError('Missing images: '+str(missing))
             async def capture(filename):
                 response=await call('Page.captureScreenshot',{'format':'png','captureBeyondViewport':False})
                 raw=base64.b64decode(response['data'])

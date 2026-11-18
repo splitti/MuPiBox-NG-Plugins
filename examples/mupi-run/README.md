@@ -1,4 +1,4 @@
-# MuPi Run – Wald-Flussbett (0.2.0)
+# MuPi Run – Wald-Flussbett (0.3.0)
 
 Eigenständige, vollständig offline spielbare MuPiBox-NG-Community-App für **800 × 480 Pixel** (5 Zoll). MuPi läuft aus der **Rückansicht** durch ein flaches, sich windendes Wald-Flussbett: ein orangefarbenes Axolotl mit exakt **drei Kiemenästen links und drei rechts**, eigenem Schweif und Lauf-/Sprung-/Duckanimation. Es gibt keine Fremdspiele, gekauften Assets, CDN- oder Online-Abhängigkeiten.
 
@@ -20,12 +20,13 @@ Die Illustrationen sind **eigenständige, freigestellte** PNG-Sprites (transpare
 
 - **MuPi-Rückansicht:** `art/mupi-back.png`, orangefarbene Haut, Rückenflecken, fransige Kiemen (3 je Seite), Schwanzflosse, Beine und Arme. Kein Gesicht, weil die Kamera hinter MuPi folgt.
 - **Wald:** Laubbaum, Nadelbaum, Hängeweide, Farn, Schilf, Blumen, Pilze. Mehrschichtiger Waldhintergrund und Sonnenstrahlen.
-- **Fluss:** Organisch gewundenes Wasserbett mit transparenter Steinstruktur, Strömung, Wellen, weichen Uferkanten und Parallax-Effekten.
+- **Fluss:** Organisch gewundenes Wasserbett, transparente animierte Wassertextur mit Lichtbrechung, eingetauchte Steine, weiße Schaumlinien am Ufer und Sonnenreflexe.
+- **Landschaft:** Illustrierter Baumstamm-Bogen, seitlicher Wasserfall, sonnige und schattige Waldschichten, Vordergrundkulisse und schwebende Libelle (keine zusätzlichen Kollisionen).
 - **Hindernisse:** Moosfelsen, umgestürzter Baumstamm, Wurzel/Ast, Wasserplatsch, Stiefel, Baumstumpf, Schilf, Korb sowie tief hängende Äste/Ranken.
 
-Die reproduzierbar generierten, **offenen SVG-Quellen** liegen direkt neben ihren PNG-Pendants unter `art/`. Auf einer Box sind zur Laufzeit nur die PNGs erforderlich, weil Qt Chromium auf Raspberry Pi SVGs nicht zuverlässig für native Kacheln dekodiert.
+Die **SVG-Quellen der Einzelillustrationen** liegen neben ihren PNG-Pendants unter `art/`. Die zusätzlichen Atmosphären- und Oberflächentexturen werden im Python-Skript `tools/generate_mupi_run_atmosphere.py` generiert. Auf der Box werden ausschließlich die PNGs geladen.
 
-Das Skript `python3 tools/generate_mupi_run_sprites.py` kann die Artwork-Dateien aus den Originalpfaden neu rendern (Pillow und `rsvg-convert` auf dem Entwicklungsrechner erforderlich). Es generiert auch das passende 512×512-Qt-/Admin-Cover und das 256×256-App-Icon. **Das alte nach vorne blickende MuPi-Bild ist nicht Bestandteil des Game-Pakets.**
+Zwei Generatoren sorgen für reproduzierbare Illustrationen: Zuerst `python3 tools/generate_mupi_run_sprites.py`, dann `python3 tools/generate_mupi_run_atmosphere.py` (Pillow und `rsvg-convert` auf dem Entwicklungsrechner). Das finale Cover für Qt/Admin (512×512) und das Icon (256×256) werden vom zweiten Skript aus denselben Spiel-Sprites zusammengestellt. Es ergänzt Licht, Texturen, Libelle, Wasserfall und Vordergrundlayer. **Das alte nach vorne blickende MuPi-Bild ist nicht Bestandteil des Game-Pakets.**
 
 ## Spiel
 
@@ -57,6 +58,7 @@ Im Repository-Stamm:
 
 ```bash
 python3 tools/generate_mupi_run_sprites.py
+python3 tools/generate_mupi_run_atmosphere.py
 python3 tools/build_mupi_run.py
 python3 tools/mupiapp.py validate dist/mupi-run.mupiapp
 node --check examples/mupi-run/app.js
