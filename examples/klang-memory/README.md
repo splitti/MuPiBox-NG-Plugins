@@ -1,5 +1,14 @@
 # Klang-Memory – independent MuPiBox Plugin
 
+## Screenshots (800 × 480 Pixel)
+
+Zwei Originalaufnahmen aus der laufenden Browser-Version der Anwendung (keine Mockups): die Startansicht und eine Spielsituation. Die Dateien liegen direkt bei dieser App und werden nicht ins Installationspaket übernommen.
+
+| Startansicht | Spielszene |
+| :---: | :---: |
+| ![Klang-Memory – Startansicht](screenshot-1-start.webp) | ![Klang-Memory – Spielszene](screenshot-2-game.webp) |
+
+
 An HTML/JavaScript version of Sound Memory. The built-in QML game is untouched.
 
 Build with `python3 tools/build_klang_memory.py`, validate the `.mupiapp` and install it from the curated catalog (or by manual upload for development).

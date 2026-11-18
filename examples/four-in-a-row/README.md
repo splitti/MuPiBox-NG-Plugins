@@ -1,5 +1,14 @@
 # MuPi 4er-Reihe – Community-App
 
+## Screenshots (800 × 480 Pixel)
+
+Zwei Originalaufnahmen aus der laufenden Browser-Version der Anwendung (keine Mockups): die Startansicht und eine Spielsituation. Die Dateien liegen direkt bei dieser App und werden nicht ins Installationspaket übernommen.
+
+| Startansicht | Spielszene |
+| :---: | :---: |
+| ![MuPi 4er-Reihe – Startansicht](screenshot-1-start.webp) | ![MuPi 4er-Reihe – Spielszene](screenshot-2-game.webp) |
+
+
 Eigenständig programmiertes Vierer-Reihe-Spiel für MuPiBox-NG (800×480 Touchscreen).
 Keine Hasbro-/CONNECT-4-Marken, Grafiken, Sounds oder fremder Spielcode werden verwendet.
 
