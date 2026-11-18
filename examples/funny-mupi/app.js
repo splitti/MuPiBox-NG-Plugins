@@ -36,8 +36,10 @@
   function stopSpeech() {
     generation += 1;
     if (sdk && sdk.tts && typeof sdk.tts.stop === 'function') {
-      Promise.resolve().then(() => sdk.tts.stop()).catch(() => {});
+      try { return Promise.resolve(sdk.tts.stop()).catch(() => {}); }
+      catch (_) { /* Older hosts may not support speech cancellation. */ }
     }
+    return Promise.resolve();
   }
   function nextJoke() {
     if (paused || !jokes.length) return;
@@ -50,9 +52,11 @@
   }
   async function speakJoke() {
     if (paused || current < 0 || !sdk || !sdk.tts) return;
-    stopSpeech();
+    const stopping = stopSpeech();
     const token = generation;
     try {
+      await stopping;
+      if (token !== generation || paused) return;
       const state = await sdk.tts.status();
       if (token !== generation || paused) return;
       if (!state || !state.enabled || !state.available) {setStatus(ui.unavailable); return;}
@@ -106,7 +110,7 @@
   }
   el('next').addEventListener('click', nextJoke);
   el('bubble').addEventListener('click', speakJoke);
-  el('exit').addEventListener('click', () => {stopSpeech(); sdk.exit();});
+  el('exit').addEventListener('click', async () => {await stopSpeech(); await sdk.exit();});
   sdk.on('input', ({button, action}) => {
     if (action !== 'press') return;
     if (button === 'BACK' || button === 'B') { el('exit').click(); return; }
