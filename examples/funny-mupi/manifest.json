@@ -22,5 +22,5 @@
     "fullScreen": true,
     "background": "app"
   },
-  "cover": "assets/cover.png"
+  "cover": "assets/cover.webp"
 }
