@@ -1,0 +1,23 @@
+{
+  "apiVersion": "1",
+  "id": "community.mupi-run",
+  "name": "MuPi Run",
+  "version": "0.1.0",
+  "runtime": "web",
+  "entry": "index.html",
+  "icon": "icon.png",
+  "cover": "cover.png",
+  "author": "MuPiBox-NG Community",
+  "description": "Endloses Laufspiel: MuPi wechselt zwischen drei Spuren, springt und duckt sich vor immer mehr Alltagsgegenständen. Mit Controller, Touch und Distanzrekord.",
+  "permissions": ["storage", "controller"],
+  "category": "games",
+  "display": {
+    "orientation": "landscape",
+    "minWidth": 800,
+    "minHeight": 480,
+    "showBackButton": false,
+    "showSystemInfo": false,
+    "fullScreen": true,
+    "background": "app"
+  }
+}
