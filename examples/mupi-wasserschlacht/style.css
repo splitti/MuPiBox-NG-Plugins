@@ -23,3 +23,13 @@ footer{height:27px;flex:0 0 27px;background:#00172779;display:flex;align-items:c
 @media(max-width:850px){.header{gap:5px;padding:4px 7px}.play{gap:6px;padding:6px}.panel{padding:5px}.aside{padding:6px}.brand strong{font-size:16px}.controller{display:none}}
 @media(max-width:650px){.play{grid-template-columns:1fr 1fr;grid-template-rows:1fr auto}.aside{grid-column:1/-1;flex-direction:row;max-height:110px}.reaction{height:90px;width:100px;flex-shrink:0}.placement{flex:1}.game-controls{flex:1}#message{flex:1}.option span{display:none}.header{flex-wrap:nowrap}}
 @media(prefers-reduced-motion:reduce){.reaction.pop{animation:none}}
+/* On the 5-inch display the Max grid can be focused for larger hit targets. */
+#app[data-mode="max"][data-focus="enemy"] .play,
+#app[data-mode="max"][data-focus="own"] .play{grid-template-columns:minmax(0,1fr) minmax(180px,.6fr)}
+#app[data-mode="max"][data-focus="enemy"] .panel.own,
+#app[data-mode="max"][data-focus="own"] .panel.enemy{display:none}
+#app[data-mode="max"][data-focus="enemy"] .grid,
+#app[data-mode="max"][data-focus="own"] .grid{width:min(100%,calc(100dvh - 135px));}
+#app[data-mode="max"] .cell.hit::after,#app[data-mode="max"] .cell.sunk::after{font-size:18px}
+#app[data-mode="max"] .cell{border-width:1px}
+@media(max-width:850px){.brand strong{font-size:15px}.option{gap:3px}.option select{max-width:114px;font-size:11px;padding:6px 3px}.header{gap:4px}.pill{padding:7px 7px;font-size:12px}}

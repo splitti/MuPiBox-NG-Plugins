@@ -2,37 +2,50 @@
 (()=>{"use strict";
 const E=WaterBattle, sdk=window.MuPiBoxSDK, $=id=>document.getElementById(id);
 const words={
- de:{level:"MuPi-Stärke",easy:"Leicht",medium:"Mittel",hard:"Schlau",new:"Neu",opponent:"MuPis Versteck",own:"Deine Boote",
+ de:{mode:"Modus",quick:"Quick · 8×8",classic:"Classic · 10×10",max:"Max · 12×12",viewown:"Boote",viewenemy:"Gegner",viewboth:"Beide",level:"MuPi-Stärke",easy:"Leicht",medium:"Mittel",hard:"Schlau",new:"Neu",opponent:"MuPis Versteck",own:"Deine Boote",
  rotate:"↻ Drehen",random:"Zufall",start:"Los geht's!",again:"Nochmal!",help:"Boote rechts platzieren. Danach links ein Feld antippen.",
  controller:"Controller: Pfeile · A wählen · X drehen",ready:"Platziere deine Boote!",placed:"Alle Boote sind bereit!",next:"Boot mit {n} Feldern",invalid:"Hier ist zu wenig Platz.",yourTurn:"Du bist dran! Tippe links auf ein Feld.",
  botTurn:"MuPi sucht ein Feld …",miss:"Platsch! Nur Wasser!",hit:"Huch! MuPi bekommt nasse Füße!",sunk:"Oh nein! MuPi braucht den Rettungsring!",win:"Juhu, du hast gewonnen!",lose:"MuPi hat gewonnen. Nächste Runde?",
  ownMiss:"MuPi ist ins Wasser geplumpst!",ownHit:"Auweia! Dein Boot wurde getroffen!",ownSunk:"Blubb! Ein Boot ist untergegangen!",wait:"MuPi ist noch am Zug.",preview:"Vorschau: Fenster schließen"},
- en:{level:"MuPi skill",easy:"Easy",medium:"Normal",hard:"Clever",new:"New",opponent:"MuPi's hideout",own:"Your boats",
+ en:{mode:"Mode",quick:"Quick · 8×8",classic:"Classic · 10×10",max:"Max · 12×12",viewown:"Your boats",viewenemy:"Target",viewboth:"Both",level:"MuPi skill",easy:"Easy",medium:"Normal",hard:"Clever",new:"New",opponent:"MuPi's hideout",own:"Your boats",
  rotate:"↻ Rotate",random:"Random",start:"Let's go!",again:"Play again!",help:"Place your boats on the right. Then tap the left ocean.",
  controller:"Controller: arrows · A select · X rotate",ready:"Place your boats!",placed:"All boats are ready!",next:"Boat with {n} squares",invalid:"Not enough room here.",yourTurn:"Your turn! Tap a square on the left.",
  botTurn:"MuPi is searching …",miss:"Splash! Just water!",hit:"Oops! MuPi's getting wet!",sunk:"Oh no! MuPi needs the lifebuoy!",win:"Hooray, you won!",lose:"MuPi won. Another round?",
  ownMiss:"MuPi splashed into the sea!",ownHit:"Oh dear! Your boat was hit!",ownSunk:"Glug! A boat went down!",wait:"MuPi's turn.",preview:"Preview: close this window"}
 };
-let lang="de",player=E.empty(),computer=E.empty(),phase="place",turn="player",placed=0,vertical=false,selected=27,epoch=0,muted=false,reactionTimer=0;
+let lang="de",player=E.empty(),computer=E.empty(),phase="place",turn="player",placed=0,vertical=false,selected=27,epoch=0,muted=false,reactionTimer=0,focusTarget="own";
 const ui={enemy:[],own:[]};
 const t=(key,arg)=>((words[lang]||words.de)[key]||words.de[key]||key).replace("{n}",String(arg??""));
 function translate(){
  document.documentElement.lang=lang;
  document.querySelectorAll("[data-i18n]").forEach(node=>node.textContent=t(node.dataset.i18n));
- $("title").textContent=lang==="de"?"MuPi Wasserschlacht":"MuPi Splash Battle";
+ $("title").textContent="MuPi Water Battle";
 }
 function makeGrid(which){
- const element=$(which);
- for(let i=0;i<64;i++){
+ const element=$(which),size=player.size;
+ element.replaceChildren();ui[which]=[];
+ element.style.gridTemplateColumns=`repeat(${size}, minmax(0, 1fr))`;
+ element.style.gridTemplateRows=`repeat(${size}, minmax(0, 1fr))`;
+ for(let i=0;i<size*size;i++){
   const btn=document.createElement("button");
   btn.type="button";btn.className="cell";btn.dataset.i=String(i);
   btn.addEventListener("click",()=>which==="own"?tryPlace(i):tryFire(i));
-  btn.setAttribute("aria-label",(which==="enemy"?"Opposite ":"Own ")+String.fromCharCode(65+i%8)+(Math.floor(i/8)+1));
+  btn.setAttribute("aria-label",(which==="enemy"?"Opposite ":"Own ")+String.fromCharCode(65+i%size)+(Math.floor(i/size)+1));
   ui[which].push(btn);element.appendChild(btn);
  }
 }
+function toggleView(){
+ if($("mode").value!=="max")return;
+ const cycle=phase==="place"?["own","both"]:["enemy","own","both"];
+ focusTarget=cycle[(cycle.indexOf(focusTarget)+1)%cycle.length];draw();
+}
 function draw(){
  const ownCell=new Set(player.ships.flatMap(s=>s.cells));
+ $("app").dataset.mode=$("mode").value;
+ $("app").dataset.focus=focusTarget;
+ $("view").hidden=$("mode").value!=="max";
+ $("view").textContent=t("view"+focusTarget);
+ const fleetSize=player.fleet.length;
  for(const which of ["enemy","own"]){
   const board=which==="enemy"?computer:player;
   ui[which].forEach((btn,i)=>{
@@ -44,15 +57,15 @@ function draw(){
    btn.disabled=phase==="finished"||(which==="enemy"?(phase!=="play"||turn!=="player"||shot!==null):(phase!=="place"));
   });
  }
- $("own-score").textContent=E.sunkCount(player)+" / "+E.FLEET.length;
- $("enemy-score").textContent=E.sunkCount(computer)+" / "+E.FLEET.length;
- $("start").disabled=placed<E.FLEET.length;
+ $("own-score").textContent=E.sunkCount(player)+" / "+fleetSize;
+ $("enemy-score").textContent=E.sunkCount(computer)+" / "+fleetSize;
+ $("start").disabled=placed<player.fleet.length;
  $("placement").hidden=phase!=="place";
  $("game-controls").hidden=phase==="place";
  $("again").hidden=phase!=="finished";
- $("ship-hint").textContent=placed===E.FLEET.length?t("placed"):t("next",E.FLEET[placed])+" "+(vertical?"↕":"↔");
+ $("ship-hint").textContent=placed===player.fleet.length?t("placed"):t("next",player.fleet[placed])+" "+(vertical?"↕":"↔");
  $("rotate").setAttribute("aria-pressed",String(vertical));
- $("turn").textContent=phase==="finished"?"":turn==="player"?t("yourTurn"):t("botTurn");
+ $("turn").textContent=phase==="play"&&turn==="computer"?t("botTurn"):"";
 }
 let audioContext;
 function browserSound(kind){
@@ -102,26 +115,32 @@ function picture(kind){
 function message(text){$("message").textContent=text;}
 function announce(kind,key){picture(kind);sound(kind);message(t(key));}
 function newRound(){
- epoch++;player=E.empty();computer=E.empty();phase="place";turn="player";placed=0;vertical=false;selected=27;
+ epoch++;
+ player=E.empty($("mode").value);computer=E.empty($("mode").value);
+ phase="place";turn="player";placed=0;vertical=false;
+ selected=E.index(Math.floor(player.size/2),Math.floor(player.size/2),player);
+ focusTarget="own";makeGrid("enemy");makeGrid("own");
  $("reaction-img").src="assets/sunk.svg";message(t("ready"));draw();
 }
 function tryPlace(i){
- if(phase!=="place"||placed>=E.FLEET.length)return;
- selected=i;const [x,y]=E.xy(i);
- if(!E.place(player,x,y,E.FLEET[placed],vertical)){message(t("invalid"));draw();return;}
- placed++;message(t(placed===E.FLEET.length?"placed":"ready"));draw();
+ if(phase!=="place"||placed>=player.fleet.length)return;
+ selected=i;const [x,y]=E.xy(i,player);
+ if(!E.place(player,x,y,player.fleet[placed],vertical)){message(t("invalid"));draw();return;}
+ placed++;message(t(placed===player.fleet.length?"placed":"ready"));draw();
 }
 function randomPlacement(){
  if(phase!=="place")return;
- player=E.randomFleet();placed=E.FLEET.length;message(t("placed"));draw();
+ player=E.randomFleet($("mode").value);placed=player.fleet.length;message(t("placed"));draw();
 }
 function begin(){
- if(phase!=="place"||placed!==E.FLEET.length)return;
- computer=E.randomFleet();phase="play";turn="player";selected=27;message(t("yourTurn"));draw();
+ if(phase!=="place"||placed!==player.fleet.length)return;
+ computer=E.randomFleet($("mode").value);phase="play";turn="player";
+ focusTarget="enemy";selected=E.index(Math.floor(player.size/2),Math.floor(player.size/2),player);message(t("yourTurn"));draw();
 }
 function finish(won){
  phase="finished";turn=won?"player":"computer";
- picture(won?"sunk":"hit");sound(won?"sunk":"hit");message(t(won?"win":"lose"));draw();
+ // The final shot has already played its reaction; do not duplicate the sound.
+ message(t(won?"win":"lose"));draw();
 }
 function tryFire(i){
  if(phase!=="play"||turn!=="player")return;
@@ -133,7 +152,7 @@ function tryFire(i){
  const run=epoch;
  setTimeout(()=>{
   if(run!==epoch||phase!=="play"||turn!=="computer")return;
-  const chosen=E.chooseShot(player.shots,$("level").value);
+  const chosen=E.chooseShot(player.shots,$("level").value,Math.random,$("mode").value);
   if(chosen===null){finish(true);return;}
   const response=E.fire(player,chosen);
   if(!response)return;
@@ -147,24 +166,25 @@ $("restart").onclick=newRound;$("again").onclick=newRound;
 $("start").onclick=begin;$("auto").onclick=randomPlacement;
 $("rotate").onclick=()=>{vertical=!vertical;draw();};
 $("sound").onclick=()=>{muted=!muted;$("sound").textContent=muted?"♪̸":"♪";$("sound").setAttribute("aria-pressed",String(!muted));};
-$("level").onchange=newRound;
+$("level").onchange=newRound;$("mode").onchange=newRound;$("view").onclick=toggleView;
 sdk.on("input",({button,action})=>{
  if(action!=="press")return;
  if(button==="BACK"||button==="B"){epoch++;sdk.exit().catch(()=>{});return;}
  if(button==="X"&&phase==="place"){vertical=!vertical;draw();return;}
  if(button==="Y"&&phase==="place"){randomPlacement();return;}
- if(button==="START"&&phase==="place"&&placed===E.FLEET.length){begin();return;}
+ if(button==="Y"&&phase!=="place"){toggleView();return;}
+ if(button==="START"&&phase==="place"&&placed===player.fleet.length){begin();return;}
  if(["UP","DOWN","LEFT","RIGHT"].includes(button)){
-  let [x,y]=E.xy(selected);
-  if(button==="UP")y=(y+7)%8;else if(button==="DOWN")y=(y+1)%8;
-  else if(button==="LEFT")x=(x+7)%8;else x=(x+1)%8;
-  selected=E.index(x,y);draw();
+  let [x,y]=E.xy(selected,player);
+  if(button==="UP")y=(y+player.size-1)%player.size;else if(button==="DOWN")y=(y+1)%player.size;
+  else if(button==="LEFT")x=(x+player.size-1)%player.size;else x=(x+1)%player.size;
+  selected=E.index(x,y,player);draw();
  }
  if(button==="A"||button==="START"){
   if(phase==="place")tryPlace(selected);else if(phase==="play")tryFire(selected);else newRound();
  }
 });
 sdk.on("lifecycle.pause",()=>{epoch++;if(phase==="play"&&turn==="computer"){turn="player";draw();}});
-makeGrid("enemy");makeGrid("own");translate();newRound();
+translate();newRound();
 sdk.getContext().then(ctx=>{const tag=String(ctx?.language||"de").toLowerCase();lang=tag.startsWith("en")?"en":"de";translate();draw();if(phase==="place")message(t("ready"));}).catch(()=>{});
 })();
