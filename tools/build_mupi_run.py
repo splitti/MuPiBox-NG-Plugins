@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'examples/mupi-run'
-FILES=('manifest.json','index.html','app.js','logic.js','style.css','icon.png','cover.png','mupi.png')
+FILES=('manifest.json','index.html','app.js','logic.js','style.css','icon.png','cover.png')
 OUTPUT=ROOT/'dist/mupi-run.mupiapp'
 def main():
     with tempfile.TemporaryDirectory(prefix='mupi-run-pack-') as td:
@@ -16,6 +16,10 @@ def main():
         dest.mkdir()
         for name in FILES:
             shutil.copy2(SOURCE/name,dest/name)
+        art=dest/'art'
+        art.mkdir()
+        for sprite in sorted((SOURCE/'art').glob('*.png')):
+            shutil.copy2(sprite,art/sprite.name)
         shutil.copy2(ROOT/'sdk/mupibox-sdk.js',dest/'mupibox-sdk.js')
         OUTPUT.parent.mkdir(parents=True,exist_ok=True)
         subprocess.run([sys.executable,str(ROOT/'tools/mupiapp.py'),'pack',str(dest),str(OUTPUT)],check=True)

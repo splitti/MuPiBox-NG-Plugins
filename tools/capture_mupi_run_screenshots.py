@@ -70,6 +70,9 @@ async def main():
             await call('Runtime.evaluate',{'expression':'document.getElementById("primary").click();'})
             await asyncio.sleep(3.4)
             await capture('screenshot-game.webp')
+            await call('Runtime.evaluate',{'expression':"document.dispatchEvent(new KeyboardEvent('keydown', {code:'ArrowUp', key:'ArrowUp', bubbles:true}));"})
+            await asyncio.sleep(.24)
+            await capture('screenshot-jump.webp')
             result=await call('Runtime.evaluate',{'expression':'JSON.stringify({phase:window.MuPiRun && document.querySelector("#overlay").classList.contains("hidden"),score:document.querySelector("#distance").textContent,loaded:document.querySelector("#world").width})','returnByValue':True})
             print('Browser state:',result.get('result',{}).get('value','unknown'))
     finally:
