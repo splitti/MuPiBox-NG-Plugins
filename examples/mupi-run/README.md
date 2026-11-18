@@ -2,6 +2,22 @@
 
 Eigenständige, vollständig offline spielbare MuPiBox-NG-Community-App für **800 × 480 Pixel** (5 Zoll). MuPi läuft aus der **Rückansicht** durch ein flaches, sich windendes Wald-Flussbett: ein orangefarbenes Axolotl mit exakt **drei Kiemenästen links und drei rechts**, eigenem Schweif und Lauf-/Sprung-/Duckanimation. Es gibt keine Fremdspiele, gekauften Assets, CDN- oder Online-Abhängigkeiten.
 
+## Screencast – echte Spielaufnahme (20 Sekunden, MP4)
+
+[MuPi Run Screencast ansehen](mupi-run-screencast.mp4)
+
+![Videovorschau aus dem tatsächlich laufenden Spiel](screencast-poster.webp)
+
+Die Aufnahme wurde **direkt aus Chromium mit dem laufenden Canvas-Spiel** aufgenommen (800 × 480, H.264, 15 Bilder/s, ohne Ton). Sie zeigt Startbildschirm, Flusslauf und Spurwechsel, Ducken unter der echten Kollisionsbrücke, Ausweichen auf dem Holzsteg und den Sprung über Steine auf dem Waldpfad. Es handelt sich um einen **Zusammenschnitt realer Spielabschnitte**: Die Vorschau-Schnittstelle springt zwischen Spielständen, die Bewegung und Hindernisse stammen unverändert aus der spielbaren App. Das ist **keine** Aufnahme von Testbox 83 und **kein** KI-Konzeptvideo.
+
+Reproduzierbar aufnehmen (Chromium, Python-websockets, Pillow und ffmpeg):
+
+```bash
+python3 tools/record_mupi_run_screencast.py
+```
+
+Die MP4-Datei ist ausschließlich zur Dokumentation im Repository vorhanden. Sie wird **nicht** ins installierbare `.mupiapp`-Paket übernommen.
+
 ## Echte Community-App-Screenshots (800 × 480)
 
 Die Aufnahmen liegen bewusst **direkt im Anwendungsverzeichnis**.
