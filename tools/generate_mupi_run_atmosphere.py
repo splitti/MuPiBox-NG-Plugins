@@ -300,7 +300,8 @@ def make_cover():
 
 def texture_sprites():
     # Multiscale low-amplitude canvas paper texture, slightly stronger in bright highlights.
-    names=['mupi-back','tree-oak','tree-fir','tree-willow','fern','rock','log','branch',
+    names=['mupi-back','mupi-back-run-left','mupi-back-run-right',
+           'tree-oak','tree-fir','tree-willow','fern','rock','log','branch',
            'vine','flower','mushroom','reeds','splash','stump','basket','boot']
     rr=random.Random(806)
     for name in names:

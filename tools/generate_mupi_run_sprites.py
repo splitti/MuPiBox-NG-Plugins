@@ -274,18 +274,28 @@ def boot():
     return b
 
 
-def back_mupi():
-    # Rear view, six gill stalks exactly: three left and three right. Tail is a real axolotl caudal fin.
-    b=ellipse(187,305,98,13,'#153d46','opacity=".25"')
-    b+=path('M182 198Q124 232 150 281Q173 320 169 356Q165 390 142 422Q186 412 209 377Q247 320 221 270Z',
+def back_mupi(step=0):
+    # Ground-contact reference: planted rear feet end at SVG y≈339.
+    # The running game anchors THAT y to the ground, not the canvas bottom.
+    # Six external feathery gill stalks remain exactly three per side.
+    b=''
+    # Curved muscular caudal fin; pulled sideways so it no longer forms
+    # a narrow third leg hanging toward the old, wrongly placed shadow.
+    b+=path('M179 205Q150 226 149 258Q140 291 108 297Q82 299 64 276Q70 319 113 329Q160 336 192 309Q236 273 224 241Q216 220 207 209Z',
             'url(#tail)','#a84f32',6)
-    b+=path('M190 230Q171 294 199 344Q203 367 175 404Q225 370 227 330Q228 276 208 236Z',
+    b+=path('M178 227Q157 253 157 275Q147 298 103 310Q146 321 181 293Q207 274 198 241Z',
             '#ffdb9b',extra='opacity=".68"')
-    b+=path('M180 319Q199 328 197 345M177 343Q192 357 184 368M173 372Q184 377 175 392','none','#d46735',4,'opacity=".52"')
-    # two backward-pointing feet
+    b+=path('M153 276Q166 285 158 296M130 304Q150 305 164 299M95 313Q113 323 130 320','none','#d46735',4,'opacity=".52"')
+    # Alternating planted and raised feet give a real walk/run cycle.
+    # step is -1/0/1; the planted foot always ends at y≈341.
     for side in [-1,1]:
+        lifted=(step!=0 and side==step)
+        dy=-27 if lifted else 2
+        dx=side*(11 if lifted else -2)
+        b+=f'<g transform="translate({dx} {dy})">'
         b+=path(f'M{188+side*53} 271Q{188+side*70} 283 {188+side*52} 321Q{188+side*47} 339 {188+side*35} 328Q{188+side*27} 311 {188+side*34} 287Z','url(#orange)','#a95632',5)
         b+=path(f'M{188+side*50} 318l{side*12} 17m{-side*12} -17l{side*1} 20','none','#a95632',3)
+        b+='</g>'
     # four-limbed salamander body
     b+=path('M124 198Q113 155 133 122Q153 99 185 111Q229 98 246 129Q267 172 246 217Q254 272 222 293Q184 304 151 285Q121 271 124 198Z',
             'url(#orange)','#a9542f',6)
@@ -385,6 +395,8 @@ def make_cover():
 def main():
     sprites=[
       ('mupi-back',375,455,back_mupi()),
+      ('mupi-back-run-left',375,455,back_mupi(-1)),
+      ('mupi-back-run-right',375,455,back_mupi(1)),
       ('tree-oak',345,350,oak()),
       ('tree-fir',275,330,fir()),
       ('tree-willow',360,350,willow()),

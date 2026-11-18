@@ -8,7 +8,8 @@
   // Optimized transparent local art sprites; no online assets or SVG engine needed at runtime.
   const art = Object.create(null);
   const spriteNames = [
-    'mupi-back','tree-oak','tree-fir','tree-willow','fern','flower','mushroom',
+    'mupi-back','mupi-back-run-left','mupi-back-run-right',
+    'tree-oak','tree-fir','tree-willow','fern','flower','mushroom',
     'reeds','rock','log','branch','vine','splash','stump','basket','boot','backdrop',
     'foreground','fallen-arch','waterfall','water-caustics','dragonfly',
     'duck-bridge','stepping-stones','rail-post','wood-deck','forest-earth'
@@ -279,30 +280,81 @@
       }
     }
   }
+  // Match the illustration's rear-foot contact (SVG y=339) to the world plane.
+  // Height=210 maps SVG y=339 to a bottom offset of 53.54 pixels.
+  // The old render anchored transparent SVG padding/tail to the floor
+  // and accidentally left both feet roughly 45 pixels above the ground.
+  const MUPI_HEIGHT=210;
+  const MUPI_WIDTH=172;
+  const MUPI_FOOT_BOTTOM=MUPI_HEIGHT*(455-339)/455;
   function muPi(x,foot,jump,duck,time) {
-    const bounce=jump===0&&!duck ? Math.abs(Math.sin(time*15)) * 4.2 : 0;
+    const jumping=jump>1;
+    const surface=game.terrainAt(state.distance);
+    const wave=Math.sin(time*15.2);
+    const bounce=jumping||duck||state.phase!=='running'?0:Math.abs(wave)*1.2;
     const y=foot-jump-bounce;
-    // The ground shadow stays on the stream surface during a jump.
-    const air=Math.min(1,jump/82);
-    ellipse(x,foot+4,49-air*20,12-air*4,'#173c4b78');
-    if(jump<22 && !duck && state.phase==='running') {
-      for(let i=-2;i<=2;i++){
-        const beat=(time*13.6+i*.42)%1;
-        const sx=x+i*14+Math.sin(time*13+i)*6;
-        const sy=foot-7-13*beat;
-        ellipse(sx,sy,3+beat*1.4,5+beat*2,'#e4fffbbe');
+    const elevation=Math.min(1,jump/82);
+    // Contact shadow stays on the floor; it gets narrower, softer and
+    // more transparent when MuPi actually jumps above it.
+    ctx.save();
+    ctx.globalAlpha=1-elevation*.58;
+    ellipse(x,foot+2,31-elevation*8,6-elevation*1.8,
+      surface==='river'?'#133f557a':'#2c291f83');
+    ctx.restore();
+
+    // Foot-specific environmental contact: splashing in the river;
+    // dusty puffs on the forest path; planted feet on the wooden deck.
+    const planted=x+(wave>0?19:-19);
+    if(!jumping && state.phase==='running') {
+      if(surface==='river'){
+        ctx.save();
+        ctx.strokeStyle='#d7fff2c1';
+        ctx.lineWidth=2;
+        ctx.beginPath();ctx.ellipse(x,foot+1,31+Math.abs(wave)*5,6.4,0,0,Math.PI*2);ctx.stroke();
+        const splash=Math.abs(wave);
+        for(let i=0;i<4;i++){
+          const side=i%2===0?1:-1;
+          const dx=side*(16+i*5)+Math.sin(time*9+i)*4;
+          const rise=(i*7.7+time*21)%27;
+          ellipse(planted+dx*.65,foot-2-rise*.58,1.7+(i%2),2.1+(i%3),
+            i%2?'#ecffebbe':'#98e8f1c9');
+        }
+        ctx.restore();
+      } else if(surface==='forest'){
+        for(let i=0;i<3;i++){
+          const rise=(time*14+i*8.7)%23;
+          ellipse(planted+(i-1)*10,foot-rise*.65,
+            2.8+i,2.1+i*.45,i%2?'#c4b18a7b':'#e1c89488');
+        }
+      }else{
+        ellipse(planted,foot+.7,14,2.3,'#312c2680');
       }
-      ellipse(x-13,foot-1,34,3,'#ccf9e3ad');
     }
     ctx.save();
     ctx.translate(x,y);
-    // Duck visually shortens the character, but never reveals a smiling face.
-    if(duck)ctx.scale(1,.64);
-    else if(jump===0)ctx.rotate(Math.sin(time*11)*.037);
-    drawArt('mupi-back',0,3,141,171);
+    // Compression is about the FOOT plane, so ducking never makes MuPi float.
+    if(duck)ctx.scale(1,.69);
+    else if(!jumping)ctx.rotate(wave*.018);
+    let sprite='mupi-back';
+    if(state.phase==='running'&&!duck&&!jumping){
+      sprite=wave>=0?'mupi-back-run-left':'mupi-back-run-right';
+    }
+    drawArt(sprite,0,MUPI_FOOT_BOTTOM,MUPI_WIDTH,MUPI_HEIGHT);
     ctx.restore();
+
+    // Foreground water lip partly occludes the planted feet and the curved
+    // tail; it is visibly grounded, never a detached white oval below MuPi.
+    if(!jumping && surface==='river' && state.phase==='running'){
+      ctx.save();
+      ctx.beginPath();ctx.ellipse(x,foot+4,35,6,0,Math.PI,Math.PI*2);
+      ctx.strokeStyle='#d5fff3b0';ctx.lineWidth=2.7;ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(planted-12,foot+1);ctx.quadraticCurveTo(planted,foot-3,planted+12,foot+1);
+      ctx.strokeStyle='#f0fff6d6';ctx.lineWidth=2.0;ctx.stroke();
+      ctx.restore();
+    }
   }
-    const hazardSprites={
+  const hazardSprites={
     rock:'rock',boulder:'rock',log:'log',root:'branch',ripple:'splash',boot:'boot',
     stump:'stump',reeds:'reeds',basket:'basket','stepping-stones':'stepping-stones','low-bridge':'duck-bridge',
     branch:'branch',vine:'vine',willow:'vine'

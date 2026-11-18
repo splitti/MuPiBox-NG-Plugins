@@ -1,4 +1,4 @@
-# MuPi Run – spielbarer Wald-/Brücken-Runner (0.4.0)
+# MuPi Run – spielbarer Wald-/Brücken-Runner (0.4.1)
 
 Eigenständige, vollständig offline spielbare MuPiBox-NG-Community-App für **800 × 480 Pixel** (5 Zoll). MuPi läuft aus der **Rückansicht** durch ein flaches, sich windendes Wald-Flussbett: ein orangefarbenes Axolotl mit exakt **drei Kiemenästen links und drei rechts**, eigenem Schweif und Lauf-/Sprung-/Duckanimation. Es gibt keine Fremdspiele, gekauften Assets, CDN- oder Online-Abhängigkeiten.
 
@@ -12,6 +12,8 @@ Die Aufnahmen liegen bewusst **direkt im Anwendungsverzeichnis**.
 
 ![Begehbarer Holzsteg mit Geländer und Hindernissen](screenshot-boardwalk.webp)
 
+![MuPi mit sichtbarem Fußkontakt auf Holzplanken](screenshot-ground-contact.webp)
+
 ![Waldpfad mit Erde und Sprungsteinen](screenshot-forest.webp)
 
 ![MuPi Run beim Sprung über das Flussbett](screenshot-jump.webp)
@@ -24,7 +26,7 @@ Die Screenshots wurden aus dem **wirklich laufenden HTML-Canvas-Spiel** mit Chro
 
 Die Illustrationen sind **eigenständige, freigestellte** PNG-Sprites (transparentes Alpha) und werden als perspektivisch skalierte einzelne Elemente in den Game-Canvas eingesetzt. Sie sind **keine einfachen Canvas-Kreise oder -Rechtecke**:
 
-- **MuPi-Rückansicht:** `art/mupi-back.png`, orangefarbene Haut, Rückenflecken, fransige Kiemen (3 je Seite), Schwanzflosse, Beine und Arme. Kein Gesicht, weil die Kamera hinter MuPi folgt.
+- **MuPi-Rückansicht:** `art/mupi-back.png`, orangefarbene Haut, Rückenflecken, fransige Kiemen (3 je Seite), Schwanzflosse, Beine und Arme. Kein Gesicht, weil die Kamera hinter MuPi folgt. Seit v0.4.1 mit zwei zusätzlichen Bein-/Laufposen `mupi-back-run-left.png` und `mupi-back-run-right.png`. Die Sprite-Füße (Quellpixel y≈339 von 455) sind im Canvas exakt an der Bodenebene verankert; nicht der transparente untere Bildrand. Schwanzflosse seitlich geführt, Bodenschatten direkt unter den Füßen. Wasser-Spritzer nur bei realem Bodenkontakt, auf Waldboden kleine Staubpartikel, auf Holzstegen Tritt-Schatten.
 - **Wald:** Laubbaum, Nadelbaum, Hängeweide, Farn, Schilf, Blumen, Pilze. Mehrschichtiger Waldhintergrund und Sonnenstrahlen.
 - **Fluss:** Organisch gewundenes Wasserbett, transparente animierte Wassertextur mit Lichtbrechung, eingetauchte Steine, weiße Schaumlinien am Ufer und Sonnenreflexe.
 - **Landschaft:** Illustrierter Baumstamm-Bogen, seitlicher Wasserfall, sonnige und schattige Waldschichten, Vordergrundkulisse und schwebende Libelle (keine zusätzlichen Kollisionen).
@@ -74,6 +76,7 @@ python3 tools/build_mupi_run.py
 python3 tools/mupiapp.py validate dist/mupi-run.mupiapp
 node --check examples/mupi-run/app.js
 node --test tests/mupi_run.test.cjs
+python3 tests/mupi_run_sprite_test.py
 python3 tools/capture_mupi_run_screenshots.py
 ```
 

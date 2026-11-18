@@ -97,6 +97,8 @@ async def main():
             await capture('screenshot-duck-bridge.webp')
             await scene(260,[{'lane':0,'item':'stump','kind':'avoid','z':25}],1,'running')
             await capture('screenshot-boardwalk.webp')
+            await scene(248,[],0,'running')
+            await capture('screenshot-ground-contact.webp')
             await scene(418,[{'lane':0,'item':'stepping-stones','kind':'jump','z':26}],0,'jump')
             await capture('screenshot-forest.webp')
             result=await call('Runtime.evaluate',{'expression':'JSON.stringify({phase:window.MuPiRun && document.querySelector("#overlay").classList.contains("hidden"),score:document.querySelector("#distance").textContent,loaded:document.querySelector("#world").width})','returnByValue':True})
