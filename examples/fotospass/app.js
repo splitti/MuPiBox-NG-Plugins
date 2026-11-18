@@ -284,7 +284,7 @@ document.addEventListener('keydown',event=>{
  }
 });
 // Galerie: Alle Aktionen erfolgen ausschliesslich ueber die Host-Foto-API.
-let galleryOpen=false,galleryEntries=[],gallerySelected=null,galleryLoading=false;
+let galleryOpen=false,galleryEntries=[],gallerySelected=null,galleryLoading=false,galleryPrintBusy=false,galleryPrintReady=false;
 const galleryUrls=new Map();
 const gallerySay=message=>{$('gallery-status').textContent=message};
 function galleryRevoke(){for(const url of galleryUrls.values())if(url.startsWith('blob:'))URL.revokeObjectURL(url);galleryUrls.clear()}
@@ -302,17 +302,32 @@ function galleryDataUrl(result){
 }
 async function galleryImage(id){if(galleryUrls.has(id))return galleryUrls.get(id);const result=await sdk.photos.get(id);const url=galleryDataUrl(result);galleryUrls.set(id,url);return url}
 function gallerySwitch(open){galleryOpen=open;$('editor-view').hidden=open;$('gallery-view').hidden=!open;$('show-gallery').classList.toggle('chosen',open);$('show-camera').classList.toggle('chosen',!open);if(open){if(active&&!frozen)void stop();void galleryLoad()}else{galleryCloseDetail();galleryRevoke()}}
-async function galleryLoad(){if(galleryLoading)return;galleryLoading=true;galleryCloseDetail();galleryRevoke();$('gallery-grid').replaceChildren();gallerySay('Fotos werden geladen …');try{
+async function galleryLoad(){if(galleryLoading)return;galleryLoading=true;galleryPrintReady=false;$('gallery-print').hidden=true;galleryCloseDetail();galleryRevoke();$('gallery-grid').replaceChildren();gallerySay('Fotos werden geladen …');try{
  if(!sdk.photos?.list||!sdk.photos?.get||!sdk.photos?.delete)throw new Error('Die Galerie-API fehlt in dieser Plugin-Version.');
  const result=await sdk.photos.list();galleryEntries=galleryNormalizeList(result);
+ // Old hosts do not know the print capability. No phantom print button.
+ if(typeof sdk.photos?.canPrint==='function'){try{const status=await sdk.photos.canPrint();galleryPrintReady=status?.available===true}catch{galleryPrintReady=false}}
  gallerySay(galleryEntries.length?galleryEntries.length+' Foto(s) gespeichert. Foto antippen zum Ansehen.':'Noch keine gespeicherten Fotos.');
  for(const entry of galleryEntries){const tile=document.createElement('button');tile.className='gallery-tile';const img=document.createElement('img');img.alt='Foto';const label=document.createElement('span');label.textContent=entry.name||entry.filename||entry.id.slice(0,20);tile.append(img,label);tile.addEventListener('click',()=>void galleryOpenDetail(entry.id));$('gallery-grid').append(tile);
  // Einzelne Ladefehler duerfen die restliche Galerie nicht blockieren.
  void galleryImage(entry.id).then(url=>{if(tile.isConnected)img.src=url}).catch(()=>{if(tile.isConnected)label.textContent='Bild nicht ladbar'});
  }
  }catch(e){gallerySay('Galerie fehlgeschlagen: '+(e?.message||String(e)))}finally{galleryLoading=false}}
-async function galleryOpenDetail(id){gallerySelected=id;$('gallery-grid').hidden=true;$('gallery-detail').hidden=false;$('gallery-large').removeAttribute('src');gallerySay('Foto wird geladen …');try{const url=await galleryImage(id);if(gallerySelected!==id)return;$('gallery-large').src=url;gallerySay('Foto ansehen oder einzeln löschen.')}catch(e){gallerySay('Foto konnte nicht geladen werden: '+e.message)}}
-function galleryCloseDetail(){gallerySelected=null;$('gallery-grid').hidden=false;$('gallery-detail').hidden=true;$('gallery-confirm').hidden=true;$('gallery-large').removeAttribute('src')}
+async function galleryOpenDetail(id){gallerySelected=id;$('gallery-grid').hidden=true;$('gallery-detail').hidden=false;$('gallery-large').removeAttribute('src');gallerySay('Foto wird geladen …');try{const url=await galleryImage(id);if(gallerySelected!==id)return;$('gallery-large').src=url;gallerySay(galleryPrintReady?'Foto ansehen, drucken oder löschen.':'Foto ansehen oder einzeln löschen.');$('gallery-print').hidden=!galleryPrintReady}catch(e){gallerySay('Foto konnte nicht geladen werden: '+e.message)}}
+function galleryCloseDetail(){if(galleryPrintBusy)return;gallerySelected=null;$('gallery-grid').hidden=false;$('gallery-detail').hidden=true;$('gallery-confirm').hidden=true;$('gallery-large').removeAttribute('src')}
+async function galleryPrint(){
+ const id=gallerySelected;
+ if(!id||galleryPrintBusy||!galleryPrintReady||!sdk.photos?.print)return;
+ galleryPrintBusy=true;$('gallery-print').disabled=true;$('gallery-back').disabled=true;$('gallery-delete').disabled=true;
+ gallerySay('Druckvorschau wird geöffnet …');
+ try{
+  const response=await sdk.photos.print(id);
+  if(response?.status==='accepted')gallerySay('Druckauftrag angenommen: 1 Foto. Ob das Foto fertig gedruckt wurde, meldet der Drucker separat.');
+  else if(response?.status==='cancelled')gallerySay('Druck abgebrochen. Es wurde nichts gedruckt.');
+  else gallerySay('Druckstatus unklar – bitte Druckwarteschlange prüfen.');
+ }catch(e){gallerySay('Drucken nicht möglich: '+(e?.message||String(e)))}
+ finally{galleryPrintBusy=false;$('gallery-print').disabled=false;$('gallery-back').disabled=false;$('gallery-delete').disabled=false}
+}
 async function galleryDelete(){const id=gallerySelected;if(!id)return;$('delete-yes').disabled=true;gallerySay('Foto wird gelöscht …');try{await sdk.photos.delete(id);galleryCloseDetail();galleryLoading=false;await galleryLoad();gallerySay('Foto gelöscht. '+galleryEntries.length+' Foto(s) verbleiben.')}catch(e){gallerySay('Löschen fehlgeschlagen: '+(e?.message||String(e)));$('gallery-confirm').hidden=true}finally{$('delete-yes').disabled=false}}
-$('show-gallery').addEventListener('click',()=>gallerySwitch(true));$('show-camera').addEventListener('click',()=>gallerySwitch(false));$('refresh-gallery').addEventListener('click',()=>void galleryLoad());$('gallery-back').addEventListener('click',galleryCloseDetail);$('gallery-delete').addEventListener('click',()=>{if(gallerySelected)$('gallery-confirm').hidden=false});$('delete-cancel').addEventListener('click',()=>{$('gallery-confirm').hidden=true});$('delete-yes').addEventListener('click',()=>void galleryDelete());
+$('show-gallery').addEventListener('click',()=>gallerySwitch(true));$('show-camera').addEventListener('click',()=>gallerySwitch(false));$('refresh-gallery').addEventListener('click',()=>void galleryLoad());$('gallery-back').addEventListener('click',galleryCloseDetail);$('gallery-print').addEventListener('click',()=>void galleryPrint());$('gallery-delete').addEventListener('click',()=>{if(gallerySelected)$('gallery-confirm').hidden=false});$('delete-cancel').addEventListener('click',()=>{$('gallery-confirm').hidden=true});$('delete-yes').addEventListener('click',()=>void galleryDelete());
 })();

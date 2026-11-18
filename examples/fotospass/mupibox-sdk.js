@@ -213,6 +213,15 @@
     async delete(id) {
       checkPhotoID(id);
       return invoke('photos.delete', {id});
+    },
+    // Printing is a host-owned capability. The app never sees CUPS, paths or
+    // printer destinations; the trusted runner always asks for confirmation.
+    async print(id) {
+      checkPhotoID(id);
+      return invoke('photos.print', {id});
+    },
+    async canPrint() {
+      return invoke('photos.print.status', {});
     }
   });
 

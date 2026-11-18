@@ -91,7 +91,7 @@ aside{display:flex;flex-direction:column;min-width:0;min-height:0;gap:7px;paddin
 .gallery-tile span{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:var(--muted)}
 #gallery-detail{display:flex;flex:1;min-height:0;flex-direction:column;align-items:center;gap:10px}
 #gallery-detail img{flex:1;min-height:0;width:100%;max-width:100%;object-fit:contain;background:#e2efe6;border:6px solid white;border-radius:16px}
-.gallery-detail-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;flex:none}
+.gallery-detail-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;width:100%;flex:none}
 .gallery-detail-buttons button{min-height:44px}
 #gallery-delete{color:#9c4539;background:#fbe6dd;border-color:#edc9bf}
 #gallery-confirm,#exit-confirm{inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:#234c50b8}
@@ -119,3 +119,9 @@ footer{grid-area:3/1/4/3;align-self:center;text-align:center;font-size:9px;line-
 @media(min-height:600px){.sticker-controls button{height:44px;min-height:44px;}}
 
 .sticker-controls .control-symbol{font-family:Arial,sans-serif;font-size:25px;line-height:1;}
+
+#gallery-print{background:var(--teal);color:#fff;border-color:var(--teal)}
+#gallery-print svg{height:16px;width:16px;vertical-align:middle;flex-shrink:0}
+#gallery-print[disabled]{opacity:.55}
+.gallery-detail-buttons button{min-width:0;padding:5px 7px;display:flex;align-items:center;justify-content:center;gap:5px}
+@media(max-width:600px){.gallery-detail-buttons button{font-size:10px}.gallery-detail-buttons svg{width:14px!important;height:14px!important}}

@@ -168,3 +168,17 @@ Die Accessoire-Schaltflächen verwenden einfache Zeichen für Vergrößern (+),
 Fertig (Häkchen) und Entfernen (×), um die fehlerhafte Symbolanzeige auf der
 MuPiBox zu vermeiden. Der transparente Countdown aus 0.5.6 ist enthalten.
 Der Anwender hat die korrekte Darstellung auf der MuPiBox bestätigt.
+
+## Druckfunktion (Vorschau 0.5.8)
+
+In der gespeicherten Foto-Galerie erscheint **Drucken (1 Foto)**, sobald die
+MuPiBox-Host-API `photos.print.status` den Druck freigibt. Diese Paketversion setzt einen NG-Host mit der neuen Permission `photo-print`
+voraus; ältere NG-Versionen können die App 0.5.8 nicht installieren. Ein Klick übergibt **nur die Foto-ID** an
+`MuPiBoxSDK.photos.print(id)`. Der vertrauenswürdige Host präsentiert eine
+zweite, host-eigene Vorschau und fragt die Bestätigung ab. Die Community-App
+erhält `accepted` (nur *Druckauftrag angenommen*) oder `cancelled` zurück.
+Pro Bestätigung wird maximal ein Exemplar beauftragt.
+
+Abhängigkeiten: NG-Host mit `photo-print`-Permission, CUPS-Warteschlange
+und Druckfreigabe für FotoSpaß. Der Drucker selbst und die Papiereinstellungen
+werden **nicht** von der Community-App verwaltet.

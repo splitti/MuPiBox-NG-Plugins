@@ -51,3 +51,17 @@ test('photo SDK rejects arbitrary file paths, mime and excessive Blob sizes',asy
  }
  assert.equal(calls.length,0);
 });
+
+test('printing accepts only an opaque photo ID and never a destination or copies',async()=>{
+ const {sdk,calls}=host();
+ const result=await sdk.photos.canPrint();
+ assert.equal(calls[0].method,'photos.print.status');
+ const printed=await sdk.photos.print(photoID);
+ assert.equal(printed.ok,true);
+ assert.deepEqual(Object.keys(calls[1].payload),['id']);
+ assert.equal(calls[1].method,'photos.print');
+ for(const bad of ['/etc/passwd','../../photo.jpg','random.jpg','']) {
+  await assert.rejects(()=>sdk.photos.print(bad),{name:'TypeError'});
+ }
+ assert.equal(calls.length,2);
+});

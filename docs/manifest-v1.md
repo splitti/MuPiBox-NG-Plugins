@@ -47,7 +47,7 @@ Example manifest:
 | `runtime` | Only `"web"` for v1; Go must be compiled to WASM |
 | `entry`, `icon` | Relative paths inside the package, no absolute paths or `..` |
 | `cover` | Optional raster home-tile image (PNG/JPG/JPEG/WebP) relative to the package root; not the app background |
-| `permissions` | Requested privileges, **not grants**: `storage`, `controller`, `audio`, `camera`, `photo-save`, `shared-assets`, `links`, `homeassistant` (`network` is not supported by the current host) |
+| `permissions` | Requested privileges, **not grants**: `storage`, `controller`, `audio`, `camera`, `photo-save`, `photo-print`, `shared-assets`, `links`, `homeassistant` (`network` is not supported by the current host) |
 | `networkHosts` | Explicit hostname allowlist **required** when requesting `network` |
 | `category` | Preferred native menu location: `games`, `creative`, `learning`, `tools`, or `other` (defaults to `games`) |
 | `display` | Preferred orientation, minimum size and optional native MuPiBox chrome settings |
@@ -310,3 +310,11 @@ An upgraded NG host implements `sdk.audio.playChord(notes, volume,
 device volume ceiling, parental controls and 75ms per-app call rate limit
 apply as with `playNote`. It does not accept raw audio samples or arbitrary
 note ranges and is not a sample-accurate song sequencer.
+
+**`photo-print` (MuPiBox-NG Host Preview):** Separate, bei der Installation
+explizit genehmigte Berechtigung, die nur zusammen mit `photo-save` sinnvoll
+ist. Die App kann mit `MuPiBoxSDK.photos.canPrint()` prüfen, ob der Host einen
+CUPS-Drucker freigegeben hat. `MuPiBoxSDK.photos.print(photoId)` löst am
+lokalen Touchscreen die Host-Vorschau und Bestätigung für ein Exemplar aus.
+Drucker, Papierformat, Exemplare und Dateipfade lassen sich durch die App
+nicht steuern. `accepted` meldet nur die Annahme des Druckauftrags.
