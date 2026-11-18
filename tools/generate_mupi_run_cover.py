@@ -63,11 +63,13 @@ def make():
         sd.ellipse((x-rr,y-rr,x+rr,y+rr),fill=col)
     splashes=splashes.filter(ImageFilter.GaussianBlur(1.2));bg.alpha_composite(splashes)
     # Near camera character rear, its six filaments and tail must remain legible.
-    character=art('mupi-back').resize((390,505),Image.Resampling.LANCZOS)
+    running=Image.open(APP/'source/mupi-run-reference.gif')
+    running.seek(0)
+    character=running.convert('RGBA').resize((440,440),Image.Resampling.LANCZOS)
     shadow=Image.new('RGBA',(W,H),(0,0,0,0));d=ImageDraw.Draw(shadow,'RGBA')
     d.ellipse((333,940,703,1008),fill=(1,36,50,176))
     shadow=shadow.filter(ImageFilter.GaussianBlur(18));bg.alpha_composite(shadow)
-    bg.alpha_composite(character,(318,515))
+    bg.alpha_composite(character,(292,553))
     # Sparkling natural particles and bright vignette near the title.
     shine=Image.new('RGBA',(W,H),(0,0,0,0));d=ImageDraw.Draw(shine,'RGBA')
     for i in range(110):

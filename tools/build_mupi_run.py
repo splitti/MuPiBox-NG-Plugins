@@ -18,7 +18,7 @@ def main():
             shutil.copy2(SOURCE/name,dest/name)
         art=dest/'art'
         art.mkdir()
-        for sprite in sorted((SOURCE/'art').glob('*.png')):
+        for sprite in sorted((SOURCE/'art').glob('*.png')) + sorted((SOURCE/'art').glob('*.webp')):
             shutil.copy2(sprite,art/sprite.name)
         shutil.copy2(ROOT/'sdk/mupibox-sdk.js',dest/'mupibox-sdk.js')
         OUTPUT.parent.mkdir(parents=True,exist_ok=True)

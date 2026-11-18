@@ -83,6 +83,21 @@ async def main():
             await call('Runtime.evaluate',{'expression':'document.getElementById("primary").click();'})
             await asyncio.sleep(3.4)
             await capture('screenshot-game.webp')
+            # Prove the browser actually renders the user's uploaded GIF atlas.
+            before=await call('Runtime.evaluate',{
+                'expression':'JSON.stringify(window.__MuPiRunPreview.snapshot())',
+                'returnByValue':True
+            })
+            snap_a=json.loads(before['result']['value'])
+            assert snap_a['usingUserGif'], 'Game fell back to the old geometric/illustrated avatar'
+            await asyncio.sleep(.22)
+            after=await call('Runtime.evaluate',{
+                'expression':'JSON.stringify(window.__MuPiRunPreview.snapshot())',
+                'returnByValue':True
+            })
+            snap_b=json.loads(after['result']['value'])
+            assert snap_a['gifFrame'] != snap_b['gifFrame'], 'GIF atlas never advances'
+            print('Real GIF atlas in Chrome:',snap_a['gifFrame'],'to',snap_b['gifFrame'])
             await call('Runtime.evaluate',{'expression':"document.dispatchEvent(new KeyboardEvent('keydown', {code:'ArrowUp', key:'ArrowUp', bubbles:true}));"})
             await asyncio.sleep(.24)
             await capture('screenshot-jump.webp')

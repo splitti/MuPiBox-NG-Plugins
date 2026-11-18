@@ -1,4 +1,4 @@
-# MuPi Run – spielbarer Wald-/Brücken-Runner (0.5.0)
+# MuPi Run – spielbarer Wald-/Brücken-Runner (0.6.0)
 
 Eigenständige, vollständig offline spielbare MuPiBox-NG-Community-App für **800 × 480 Pixel** (5 Zoll). MuPi läuft aus der **Rückansicht** durch ein flaches, sich windendes Wald-Flussbett: ein orangefarbenes Axolotl mit exakt **drei Kiemenästen links und drei rechts**, eigenem Schweif und Lauf-/Sprung-/Duckanimation. Es gibt keine Fremdspiele, gekauften Assets, CDN- oder Online-Abhängigkeiten.
 
@@ -44,15 +44,16 @@ Die Screenshots wurden aus dem **wirklich laufenden HTML-Canvas-Spiel** mit Chro
 
 Die Illustrationen sind **eigenständige, freigestellte** PNG-Sprites (transparentes Alpha) und werden als perspektivisch skalierte einzelne Elemente in den Game-Canvas eingesetzt. Sie sind **keine einfachen Canvas-Kreise oder -Rechtecke**:
 
-- **MuPi-Rückansicht:** `art/mupi-back.png`, orangefarbene Haut, Rückenflecken, fransige Kiemen (3 je Seite), Schwanzflosse, Beine und Arme. Kein Gesicht, weil die Kamera hinter MuPi folgt. Seit v0.5.0 mit sechs unabhängigen Laufphasen (`mupi-body-run-0.png` bis `mupi-body-run-5.png`) und zwei **getrennt transparenten Grafikebenen**: `mupi-tail.png` wird immer zuerst gezeichnet, darüber erst der Körper mit den Beinen. So kann der Schwanz niemals vor den Beinen erscheinen. Die Sprite-Füße (Quellpixel y≈339 von 455) sind im Canvas exakt an der Bodenebene verankert; nicht der transparente untere Bildrand. Schwanzflosse seitlich geführt, Bodenschatten direkt unter den Füßen. Wasser-Spritzer nur bei realem Bodenkontakt, auf Waldboden kleine Staubpartikel, auf Holzstegen Tritt-Schatten.
+- **Original-MuPi-GIF als echte Laufanimation:** Das vom Nutzer bereitgestellte GIF liegt unverändert unter `source/mupi-run-reference.gif` (20 Frames, 280×280, transparent). `tools/import_mupi_run_gif.py` erzeugt daraus den transparenten, kompakten `art/mupi-running-atlas.webp` mit 5×4 Frames. Das Spiel zeichnet die **tatsächlichen GIF-Einzelbilder** nacheinander, bei steigender Geschwindigkeit etwas schneller. Die Bilder werden nicht neu interpretiert, künstlich gespiegelt oder durch geometrische Formen ersetzt. Bodenkontakt: Referenz-Fußhöhe Quellpixel y≈260 von 280. Die alte gezeichnete Figur bleibt nur als Fallback vorhanden, falls das neue Sprite nicht geladen werden kann.
+- **Springen und Ducken:** Vorläufig werden die vorhandenen GIF-Posen angehoben beziehungsweise vertikal gestaucht. Dafür können später separate, zum gleichen MuPi-Modell passende Sprung-/Duck-Sprites eingebaut werden; eine eigenständige hochwertige Sprung-/Duck-Animation ist in 0.6.0 **noch nicht enthalten**.
 - **Wald:** Laubbaum, Nadelbaum, Hängeweide, Farn, Schilf, Blumen, Pilze. Mehrschichtiger Waldhintergrund und Sonnenstrahlen.
 - **Fluss:** Organisch gewundenes Wasserbett, transparente animierte Wassertextur mit Lichtbrechung, eingetauchte Steine, weiße Schaumlinien am Ufer und Sonnenreflexe.
 - **Landschaft:** Illustrierter Baumstamm-Bogen, seitlicher Wasserfall, sonnige und schattige Waldschichten, Vordergrundkulisse und schwebende Libelle (keine zusätzlichen Kollisionen).
 - **Hindernisse:** Moosfelsen, umgestürzter Baumstamm, Wurzel/Ast, Wasserplatsch, Stiefel, Baumstumpf, Schilf, Korb sowie tief hängende Äste/Ranken.
 
-Die **SVG-Quellen der Einzelillustrationen** liegen neben ihren PNG-Pendants unter `art/`. Die zusätzlichen Atmosphären- und Oberflächentexturen werden im Python-Skript `tools/generate_mupi_run_atmosphere.py` generiert. Auf der Box werden ausschließlich die PNGs geladen.
+Die **SVG-Quellen der Einzelillustrationen** liegen neben ihren PNG-Pendants unter `art/`. Die zusätzlichen Atmosphären- und Oberflächentexturen werden im Python-Skript `tools/generate_mupi_run_atmosphere.py` generiert. Auf der Box werden die lokalen PNGs und der WebP-Animationsatlas geladen.
 
-Alle Grafiken sind reproduzierbar: die Basisillustrationen aus `generate_mupi_run_sprites.py`, Atmosphäre aus `generate_mupi_run_atmosphere.py`, neue Wald-/Brückenobjekte aus `generate_mupi_run_zones.py`, UI-Logo aus `generate_mupi_run_logo.py` und das finale Cover/Icon aus `generate_mupi_run_cover.py`. Auf dem Entwicklungsrechner werden Pillow und `rsvg-convert` benötigt; auf der Box nur die gepackten lokalen PNGs. **Das alte nach vorne blickende MuPi-Bild ist nicht Bestandteil des Game-Pakets.**
+Alle Grafiken sind reproduzierbar: die Basisillustrationen aus `generate_mupi_run_sprites.py`, Atmosphäre aus `generate_mupi_run_atmosphere.py`, neue Wald-/Brückenobjekte aus `generate_mupi_run_zones.py`, UI-Logo aus `generate_mupi_run_logo.py` und das finale Cover/Icon aus `generate_mupi_run_cover.py`. Auf dem Entwicklungsrechner werden Pillow und `rsvg-convert` benötigt; auf der Box nur die gepackten lokalen PNGs sowie der WebP-Atlas. **Das alte nach vorne blickende MuPi-Bild ist nicht Bestandteil des Game-Pakets.**
 
 ## Spiel
 
@@ -92,17 +93,19 @@ python3 tools/generate_mupi_run_sprites.py
 python3 tools/generate_mupi_run_atmosphere.py
 python3 tools/generate_mupi_run_zones.py
 python3 tools/generate_mupi_run_logo.py
+python3 tools/import_mupi_run_gif.py
 python3 tools/generate_mupi_run_cover.py
 python3 tools/build_mupi_run.py
 python3 tools/mupiapp.py validate dist/mupi-run.mupiapp
 node --check examples/mupi-run/app.js
 node --test tests/mupi_run.test.cjs tests/mupi_run_autopilot.test.cjs
 python3 tests/mupi_run_sprite_test.py
+python3 tests/mupi_run_gif_test.py
 python3 tools/capture_mupi_run_screenshots.py
 python3 tools/record_mupi_run_screencast.py
 ```
 
-Das Build-Skript packt nur benötigte, rasterisierte `art/*.png` sowie HTML, CSS, JS, SDK, Manifest, Cover und Icon. **Keine SVG-Quelltexte oder Screenshots im .mupiapp-Paket.** Manuelle Installation über den Pluginmanager ist möglich. Der offizielle Katalog erfordert vor der Veröffentlichung ein geprüftes Release-Asset und dessen SHA-256.
+Das Build-Skript packt die zur Laufzeit benötigten `art/*.png` und `art/*.webp` sowie HTML, CSS, JS, SDK, Manifest, Cover und Icon. **Keine SVG-Quelltexte oder Screenshots im .mupiapp-Paket.** Manuelle Installation über den Pluginmanager ist möglich. Der offizielle Katalog erfordert vor der Veröffentlichung ein geprüftes Release-Asset und dessen SHA-256.
 
 ## Technischer Status
 
@@ -111,4 +114,4 @@ Das Build-Skript packt nur benötigte, rasterisierte `art/*.png` sowie HTML, CSS
 
 ## Rechte und Datenschutz
 
-Original-Spielmechanik, eigener Code und selbst illustrierte Grafiken unter der Repository-Lizenz MIT; keine übernommenen kommerziellen Assets. Die App fordert nur `controller` und `storage` an; kein Netzwerk, keine Werbung, keine Tracker, keine Online-Dienste.
+Eigenständig entwickelter Spielcode und eigene Waldgrafiken unter der Repository-Lizenz MIT. Das integrierte originale MuPi-Lauf-GIF wurde vom Nutzer für diese Community-App zur Verfügung gestellt; die Rechte an dieser Charaktergrafik werden dadurch nicht automatisch auf MIT umgestellt. Keine übernommenen kommerziellen Fremd-Assets. Die App fordert nur `controller` und `storage` an; kein Netzwerk, keine Werbung, keine Tracker, keine Online-Dienste.
