@@ -103,7 +103,7 @@ function message(text){$("message").textContent=text;}
 function announce(kind,key){picture(kind);sound(kind);message(t(key));}
 function newRound(){
  epoch++;player=E.empty();computer=E.empty();phase="place";turn="player";placed=0;vertical=false;selected=27;
- $("reaction-img").src="assets/hit.svg";message(t("ready"));draw();
+ $("reaction-img").src="assets/sunk.svg";message(t("ready"));draw();
 }
 function tryPlace(i){
  if(phase!=="place"||placed>=E.FLEET.length)return;
