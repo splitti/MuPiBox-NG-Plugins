@@ -10,7 +10,8 @@
   const spriteNames = [
     'mupi-back','tree-oak','tree-fir','tree-willow','fern','flower','mushroom',
     'reeds','rock','log','branch','vine','splash','stump','basket','boot','backdrop',
-    'foreground','fallen-arch','waterfall','water-caustics','dragonfly'
+    'foreground','fallen-arch','waterfall','water-caustics','dragonfly',
+    'duck-bridge','stepping-stones','rail-post','wood-deck','forest-earth'
   ];
   for (const name of spriteNames) {
     const image = new Image();
@@ -36,6 +37,7 @@
   const toast = document.getElementById('toast');
   let state = game.fresh((Date.now() ^ 0x643bd8) >>> 0);
   let best = 0, lang = 'de', lastFrame = 0, lastLevel = 1, toastUntil = 0;
+  let previousTerrain='river';
   let panStart = null, gamepadPrevious = new Set(), crashAt = -9999;
 
   const languages = {
@@ -302,27 +304,120 @@
   }
     const hazardSprites={
     rock:'rock',boulder:'rock',log:'log',root:'branch',ripple:'splash',boot:'boot',
-    stump:'stump',reeds:'reeds',basket:'basket',
+    stump:'stump',reeds:'reeds',basket:'basket','stepping-stones':'stepping-stones','low-bridge':'duck-bridge',
     branch:'branch',vine:'vine',willow:'vine'
   };
   function hazard(ob) {
     if(ob.z>95||ob.z<-12)return;
-    const p=project(ob.z,ob.lane);
+    const p=project(ob.z,ob.lane===null?0:ob.lane);
+    const lowBridge=ob.item==='low-bridge';
     const name=hazardSprites[ob.item]||'rock';
     ctx.save();ctx.translate(p.x,p.y);ctx.scale(p.scale,p.scale);
-    const overhead=ob.kind==='duck';
-    const w=overhead?156:ob.item==='log'?148:ob.item==='boulder'?126:118;
-    const h=overhead?149:ob.item==='log'?93:ob.item==='ripple'?68:110;
-    ellipse(0,1,51,10,'#132f3d8a');
-    drawArt(name,0,4,w,h);
-    // Subtle colored action hints remain legible at high running speed.
-    if(ob.z<29&&ob.z>4){
-      const symbol=ob.kind==='jump'?'↑':overhead?'↓':'↔';
-      const color=ob.kind==='jump'?'#ffe09a':overhead?'#a3f7e3':'#ffb5a7';
-      rounded(-15,-h-15,30,29,9,color,'#ffffffc2');
-      centeredText(symbol,0,-h,23,'#214b53');
+    if(lowBridge){
+      // An actual whole-width collider, matching the game's duck mechanic.
+      // As the bridge approaches, the crossbeam lowers toward MuPi's head.
+      drawArt('duck-bridge',0,25,620,259);
+      if(ob.z < state.speed * .93 && ob.z > 3){
+        rounded(-22,-238,44,44,16,'#e9a446e8','#ffdf89');
+        centeredText('↓',0,-216,36,'#ffffff','#7a4d2d');
+      }
+    }else{
+      const overhead=ob.kind==='duck';
+      const width=ob.item==='stepping-stones'?151:overhead?153:ob.item==='log'?145:ob.item==='boulder'?125:121;
+      const height=ob.item==='stepping-stones'?85:overhead?151:ob.item==='log'?91:ob.item==='ripple'?74:111;
+      ellipse(0,1,51,10,'#132f3d80');
+      drawArt(name,0,4,width,height);
+      if(ob.z < state.speed * .93 && ob.z > 3){
+        const symbol=ob.kind==='jump'?'↑':overhead?'↓':'↔';
+        const color=ob.kind==='jump'?'#ffe09a':overhead?'#a3f7e3':'#ffb5a7';
+        rounded(-16,-height-12,32,32,10,color,'#ffffffb0');
+        centeredText(symbol,0,-height+4,23,'#214b53');
+      }
     }
     ctx.restore();
+  }
+  function terrain() {
+    // Physically different running surfaces, not a fixed water-only wallpaper:
+    // river (0–195m), wooden footbridge (195–360m), forest dirt (360–530m).
+    const tiles={
+      boardwalk:art['wood-deck'],
+      forest:art['forest-earth']
+    };
+    // Merge adjacent 3.5m segments into only 1–3 texture-clipped zones.
+    // Avoid 50 oversized image draws per frame on Raspberry Pi 4/5.
+    const spans=[];
+    let active=null;
+    for(let far=95;far>0;far-=3.5){
+      const near=Math.max(0,far-3.5);
+      const type=game.terrainAt(state.distance+(far+near)/2);
+      if(type==='river'){
+        if(active){spans.push(active);active=null;}
+        continue;
+      }
+      if(!active||active.type!==type){
+        if(active)spans.push(active);
+        active={type,far,near};
+      }else active.near=near;
+    }
+    if(active)spans.push(active);
+    for(const region of spans){
+      const off=region.type==='boardwalk'?.98:.88;
+      const left=[],right=[];
+      const n=Math.max(2,Math.ceil((region.far-region.near)/3.5));
+      for(let i=0;i<=n;i++){
+        const z=region.far-(region.far-region.near)*i/n;
+        const p=project(z,0);
+        left.push([roadX(z,-off),p.y]);
+        right.push([roadX(z,off),p.y]);
+      }
+      const vertices=left.concat(right.reverse());
+      polygon(vertices,region.type==='boardwalk'?'#a37751':'#8e8560');
+      const tex=tiles[region.type];
+      if(tex&&tex.complete&&tex.naturalWidth){
+        ctx.save();
+        ctx.beginPath();ctx.moveTo(vertices[0][0],vertices[0][1]);
+        for(let k=1;k<vertices.length;k++)ctx.lineTo(vertices[k][0],vertices[k][1]);
+        ctx.closePath();ctx.clip();
+        ctx.globalAlpha=region.type==='boardwalk'?.67:.90;
+        const scroll=(state.distance*(region.type==='boardwalk'?15:8))%480;
+        ctx.drawImage(tex,0,-480+scroll,800,560);
+        ctx.drawImage(tex,0,80+scroll,800,560);
+        ctx.restore();
+      }
+    }
+    // Perspective-correct board joints and planted trail edges.
+    for(let z=95-(state.distance%6);z>0;z-=6){
+      const type=game.terrainAt(state.distance+z);
+      const p=project(z,0);
+      if(type==='boardwalk'){
+        const left=roadX(z,-.98),right=roadX(z,.98);
+        line(left,p.y,right,p.y,'#2f342de0',Math.max(1.1,p.scale*3.5));
+        line(left,p.y-2*p.scale,right,p.y-2*p.scale,'#f5b876a1',Math.max(.7,p.scale*1.9));
+        if(Math.floor((state.distance+z)/6)%3===0){
+          ellipse(roadX(z,-.77),p.y-3*p.scale,1.3*p.scale,1.2*p.scale,'#f6dca4');
+          ellipse(roadX(z,.77),p.y-3*p.scale,1.3*p.scale,1.2*p.scale,'#f6dca4');
+        }
+      }
+      if(type==='forest' && Math.floor((state.distance+z)/6)%2===0){
+        const side=Math.floor((state.distance+z)/6)%4<2?-1:1;
+        drawArt('fern',roadX(z,side*.89),p.y,36*p.scale,37*p.scale,.86);
+      }
+    }
+    // Upright railing sprites and ropes attach the wooden bridge to the banks.
+    // Spacing is in world coordinates, so they move with the runner.
+    const posts=[];
+    for(let z=95-(state.distance%10);z>0;z-=10){
+      if(game.terrainAt(state.distance+z)!=='boardwalk')continue;
+      const p=project(z,0);
+      posts.push({z,p});
+    }
+    posts.reverse(); // near objects occlude far ones for convincing depth
+    for(const {z,p} of posts){
+      const sc=p.scale;
+      for(const side of [-1,1]){
+        drawArt('rail-post',roadX(z,side*1.04),p.y+8*sc,61*sc,86*sc);
+      }
+    }
   }
   function environmentFeatures() {
     // A real illustrated arch sits *behind* running hazards and is not a
@@ -354,10 +449,13 @@
       const amplitude=(1-(performance.now()-crashAt)/330)*5;
       ctx.translate(Math.sin(performance.now()*.12)*amplitude,Math.cos(performance.now()*.17)*amplitude);
     }
-    sky(); road(); scenery(); environmentFeatures();
-    state.obstacles.slice().sort((a,b)=>b.z-a.z).forEach(hazard);
+    sky(); road(); terrain(); scenery(); environmentFeatures();
+    const objects=state.obstacles.slice().sort((a,b)=>b.z-a.z);
+    objects.filter(o=>o.z>2.5 || o.item!=='low-bridge').forEach(hazard);
     const x=roadX(0,state.visualLane/1.5);
     muPi(x,435,game.jumpHeight(state),game.ducking(state),state.time);
+    // The near bridge crossbeam overlaps MuPi, so passing UNDER is visible.
+    objects.filter(o=>o.z<=2.5 && o.item==='low-bridge').forEach(hazard);
     ctx.restore();
     distanceLabel.textContent=Math.floor(state.distance).toLocaleString(lang==='de'?'de-DE':'en-US');
     bestLabel.textContent=best.toLocaleString(lang==='de'?'de-DE':'en-US')+' m';
@@ -407,6 +505,10 @@
     lastFrame=now;
     if(state.phase==='running'){
       game.step(state,delta);
+      if(state.lastTerrain!==previousTerrain){
+        previousTerrain=state.lastTerrain;
+        showToast(previousTerrain==='boardwalk'?'HOLZSTEG!':previousTerrain==='forest'?'WALDPFAD!':'FLUSSBETT!');
+      }
       const level=1+Math.floor(state.distance/150);
       if(level>lastLevel){lastLevel=level;showToast(tr('level',{n:level}));}
       if(state.phase==='over')finish();
@@ -419,6 +521,7 @@
     if(state.phase==='over'){
       state=game.fresh((Date.now() ^ (Math.random()*0xffffffff))>>>0);
       lastLevel=1;
+      previousTerrain='river';
     }
     if(state.phase==='paused')game.act(state,'pause');
     else game.act(state,'start');
@@ -508,6 +611,36 @@
     else control('jump');
   });
   canvas.addEventListener('pointercancel',()=>{panStart=null;});
+  // Only a standalone browser preview exposes deterministic test scenes.
+  // This API is not registered inside hosted MuPiBox Qt.
+  if(!sdk.isHosted){
+    window.__MuPiRunPreview=Object.freeze({
+      setScene(distance, obstacles=[], lane=0, mode='running') {
+        if(!Number.isFinite(distance) || distance<0 || distance>1e6) return false;
+        state.distance=distance;
+        state.speed=game.speedAt(distance);
+        state.lastTerrain=game.terrainAt(distance);
+        state.lane=Math.max(-1,Math.min(1,Number(lane)||0));
+        state.visualLane=state.lane;
+        state.obstacles=obstacles.map(o=>({
+          lane:o.lane===null?null:Math.max(-1,Math.min(1,Number(o.lane)||0)),
+          kind:o.kind,item:o.item,z:Number(o.z)||20,checked:false,passed:false
+        }));
+        state.jumpAge=mode==='jump'?.23:-1;
+        state.duckAge=mode==='duck'?.17:-1;
+        state.phase='running';
+        renderOverlay();render();
+        return true;
+      },
+      snapshot() {
+        return {
+          phase:state.phase,distance:state.distance,lane:state.lane,
+          terrain:state.lastTerrain,obstacles:state.obstacles.map(o=>({...o})),
+          missingSprites:Object.keys(art).filter(name=>!art[name].complete||!art[name].naturalWidth)
+        };
+      }
+    });
+  }
   window.addEventListener('resize',resize);
   resize();renderOverlay();
   window.requestAnimationFrame(frame);

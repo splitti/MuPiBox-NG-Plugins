@@ -13,17 +13,20 @@ test('start, lane change, stop at riverbanks, jump and crouch',()=>{
   assert.equal(G.act(s,'duck'),false);  // cannot duck mid-jump
   for(let i=0;i<8;i++)G.step(s,.05);
   assert.ok(G.jumpHeight(s)>28);
-  for(let i=0;i<14;i++)G.step(s,.05);
+  for(let i=0;i<22;i++)G.step(s,.05);
   assert.equal(s.jumpAge,-1);
   G.act(s,'duck');assert.equal(G.ducking(s),true);
 });
 
-test('hazards remain possible: any wave occupies at most two of three lanes',()=>{
+test('hazards are solvable: lane avoidance plus actual duck under full-width bridge',()=>{
   const s=G.fresh(42);G.act(s,'start');
   for(let i=0;i<20000;i++){
-    // Clear obstacles by staying in lane with no hazard near collision.
+    // Avoid ordinary obstacles by using the safe lane; full-width bridges
+    // instead require ducking. Start crouching just before reaching the bar.
     for(const item of s.obstacles.filter(o=>o.z<19&&o.z>0)){
-      if(item.lane===s.lane){
+      if(item.lane===null && item.z<8 && s.duckAge<0){
+        G.act(s,'duck');
+      } else if(item.lane===s.lane){
         const free=G.LANES.find(l=>!s.obstacles.some(o=>o.lane===l&&Math.abs(o.z-item.z)<3));
         if(free!==undefined)s.lane=free;
       }
@@ -65,4 +68,39 @@ test('all hazard definitions map to an action',()=>{
   const all=Object.values(G.kinds).flat();
   assert.equal(new Set(all).size,all.length);
   assert.equal(G.LANES.length,3);
+});
+test('terrain alternates between stream, boardwalk and dry forest',()=>{
+  assert.equal(G.terrainAt(0),'river');
+  assert.equal(G.terrainAt(194),'river');
+  assert.equal(G.terrainAt(195),'boardwalk');
+  assert.equal(G.terrainAt(359),'boardwalk');
+  assert.equal(G.terrainAt(360),'forest');
+  assert.equal(G.terrainAt(529),'forest');
+  assert.equal(G.terrainAt(530),'river');
+  assert.equal(G.terrainAt(650),'river');
+  assert.equal(G.terrainAt(845),'boardwalk');
+});
+
+test('full-width bridge requires ducking and cannot be dodged by changing lanes',()=>{
+  for(const lane of G.LANES){
+    const s=G.fresh(27);G.act(s,'start');
+    s.lane=lane;
+    s.obstacles=[{lane:null,z:2.04,kind:'duck',item:'low-bridge',checked:false}];
+    G.step(s,.03);
+    assert.equal(s.phase,'over','Low bridge must collide without crouching in lane '+lane);
+  }
+  const s=G.fresh(27);G.act(s,'start');G.act(s,'duck');
+  for(let i=0;i<4;i++)G.step(s,.03);
+  s.obstacles=[{lane:null,z:2.04,kind:'duck',item:'low-bridge',checked:false}];
+  G.step(s,.03);
+  assert.equal(s.phase,'running');
+  assert.equal(s.completedDucks,1);
+  assert.equal(s.obstacles[0].passed,true);
+});
+
+test('early tutorial includes mandatory duck bridge and a stepping stone jump later',()=>{
+  const s=G.fresh(271);
+  G.act(s,'start');
+  while(s.waves<3)G.step(s,.05);
+  assert.ok(s.obstacles.some(x=>x.item==='low-bridge'&&x.lane===null));
 });

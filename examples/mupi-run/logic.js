@@ -7,20 +7,33 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const LANES = [-1, 0, 1];
-  const JUMP_DURATION = 0.93;
-  const DUCK_DURATION = 0.88;
+  // Generous timing for controller and touch reactions.
+  const JUMP_DURATION = 1.20;
+  const DUCK_DURATION = 1.25;
   const kinds = {
-    jump: ['log', 'rock', 'root', 'ripple', 'boot'],
-    duck: ['branch', 'vine', 'willow'],
+    jump: ['log', 'rock', 'root', 'ripple', 'boot', 'stepping-stones'],
+    duck: ['branch', 'vine', 'willow', 'low-bridge'],
     avoid: ['boulder', 'stump', 'reeds', 'basket']
   };
 
+  const ZONES = Object.freeze([
+    {name:'river',start:0,end:195},
+    {name:'boardwalk',start:195,end:360},
+    {name:'forest',start:360,end:530},
+    {name:'river',start:530,end:650}
+  ]);
+  const ZONE_LENGTH = 650;
+  function terrainAt(distance) {
+    const pos=((distance%ZONE_LENGTH)+ZONE_LENGTH)%ZONE_LENGTH;
+    return ZONES.find(z => pos>=z.start && pos<z.end).name;
+  }
   function fresh(seed) {
     return {
       phase: 'ready', distance: 0, speed: 13, lane: 0, visualLane: 0,
       jumpAge: -1, duckAge: -1, obstacles: [], spawnIn: 1.5,
       seed: (seed >>> 0) || 0x1badc0de, waves: 0,
-      time: 0, crash: null
+      time: 0, crash: null, completedDucks: 0, completedJumps: 0,
+      completedDodges: 0, lastTerrain: 'river'
     };
   }
 
@@ -66,22 +79,39 @@
   }
 
   function spawnWave(s) {
-    const firstLane = choice(s, LANES);
-    const second = s.distance >= 125 && random(s) < Math.min(0.72, (s.distance - 90) / 570);
-    const lanes = [firstLane];
-    if (second) lanes.push(choice(s, LANES.filter(l => l !== firstLane)));
-    lanes.forEach(lane => {
-      const type = choice(s, s.distance < 40 ? ['jump', 'avoid'] : ['jump', 'avoid', 'duck']);
-      s.obstacles.push({
-        lane: lane, z: 83, kind: type, item: choice(s, kinds[type]),
-        passed: false, checked: false
-      });
-    });
+    const spawn = (lane,kind,item) => {
+      s.obstacles.push({lane,z:83,kind,item,passed:false,checked:false});
+    };
+    // Playable first three challenges. The low bridge is a REAL collider,
+    // spans all three lanes and is overcome only by crouching.
+    if(s.waves===0) spawn(-1,'jump','rock');
+    else if(s.waves===1) spawn(1,'avoid','boulder');
+    else if(s.waves===2) spawn(null,'duck','low-bridge');
+    else {
+      const terrain=terrainAt(s.distance+60);
+      // A recurring low-hanging bridge, independent of the lane, creates
+      // genuine duck moments even after the tutorial.
+      const bridgeChance=terrain==='boardwalk'?.19:terrain==='forest'?.13:.11;
+      if(s.waves%10===0 || random(s)<bridgeChance) {
+        spawn(null,'duck','low-bridge');
+      }else{
+        const firstLane=choice(s,LANES);
+        const second=s.distance>=125 && random(s)<Math.min(.67,(s.distance-85)/650);
+        const lanes=[firstLane];
+        if(second)lanes.push(choice(s,LANES.filter(l=>l!==firstLane)));
+        for(const lane of lanes){
+          const type=choice(s,s.distance<40?['jump','avoid']:['jump','avoid','duck']);
+          const items=terrain==='boardwalk' && type==='jump'?['log','stepping-stones','rock']:
+           terrain==='forest' && type==='duck'?['branch','willow','vine']:kinds[type].filter(v=>v!=='low-bridge');
+          spawn(lane,type,choice(s,items));
+        }
+      }
+    }
     s.waves++;
   }
 
   function canPass(s, obstacle) {
-    if (s.lane !== obstacle.lane) return true;
+    if (obstacle.lane!==null && s.lane!==obstacle.lane) return true;
     if (obstacle.kind === 'jump') return jumpHeight(s) >= 28;
     if (obstacle.kind === 'duck') return ducking(s) && s.duckAge >= 0.08;
     return false;
@@ -103,6 +133,7 @@
     s.speed = speedAt(s.distance);
     const travel = s.speed * dt;
     s.distance += travel;
+    s.lastTerrain = terrainAt(s.distance);
     s.spawnIn -= dt;
     if (s.spawnIn <= 0) {
       spawnWave(s);
@@ -120,6 +151,9 @@
           break;
         }
         obstacle.passed = true;
+        if (obstacle.kind==='duck') s.completedDucks++;
+        else if (obstacle.kind==='jump') s.completedJumps++;
+        else s.completedDodges++;
       }
     }
     s.obstacles = s.obstacles.filter(o => o.z > -12);
@@ -128,6 +162,6 @@
 
   return Object.freeze({
     fresh, act, step, jumpHeight, ducking, speedAt, intervalAt,
-    JUMP_DURATION, DUCK_DURATION, LANES, kinds
+    JUMP_DURATION, DUCK_DURATION, LANES, kinds, terrainAt, ZONES
   });
 });

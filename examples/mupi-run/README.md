@@ -1,18 +1,24 @@
-# MuPi Run – Wald-Flussbett (0.3.0)
+# MuPi Run – spielbarer Wald-/Brücken-Runner (0.4.0)
 
 Eigenständige, vollständig offline spielbare MuPiBox-NG-Community-App für **800 × 480 Pixel** (5 Zoll). MuPi läuft aus der **Rückansicht** durch ein flaches, sich windendes Wald-Flussbett: ein orangefarbenes Axolotl mit exakt **drei Kiemenästen links und drei rechts**, eigenem Schweif und Lauf-/Sprung-/Duckanimation. Es gibt keine Fremdspiele, gekauften Assets, CDN- oder Online-Abhängigkeiten.
 
-## Echte Browser-Screenshots (800 × 480)
+## Echte Community-App-Screenshots (800 × 480)
 
 Die Aufnahmen liegen bewusst **direkt im Anwendungsverzeichnis**.
 
 ![MuPi Run mit orangefarbenem Axolotl von hinten und individuell illustrierten Waldobjekten](screenshot-game.webp)
 
+![Echte niedrige Brücke mit Ducken unter dem Hindernis](screenshot-duck-bridge.webp)
+
+![Begehbarer Holzsteg mit Geländer und Hindernissen](screenshot-boardwalk.webp)
+
+![Waldpfad mit Erde und Sprungsteinen](screenshot-forest.webp)
+
 ![MuPi Run beim Sprung über das Flussbett](screenshot-jump.webp)
 
 ![MuPi Run Startmenü](screenshot-start.webp)
 
-Die Screenshots wurden mit Chromium bei 800 × 480 erzeugt, **nicht** auf der MuPiBox-Hardware aufgenommen.
+Die Screenshots wurden aus dem **wirklich laufenden HTML-Canvas-Spiel** mit Chromium bei 800 × 480 aufgenommen, **nicht** aus Konzeptbildern. Ducken, Holzsteg und Waldpfad sind deterministische Vorschau-Szenen derselben Kollisions- und Render-Engine. Kein Hardwaretest auf Box 83.
 
 ## Grafiken
 
@@ -26,14 +32,16 @@ Die Illustrationen sind **eigenständige, freigestellte** PNG-Sprites (transpare
 
 Die **SVG-Quellen der Einzelillustrationen** liegen neben ihren PNG-Pendants unter `art/`. Die zusätzlichen Atmosphären- und Oberflächentexturen werden im Python-Skript `tools/generate_mupi_run_atmosphere.py` generiert. Auf der Box werden ausschließlich die PNGs geladen.
 
-Zwei Generatoren sorgen für reproduzierbare Illustrationen: Zuerst `python3 tools/generate_mupi_run_sprites.py`, dann `python3 tools/generate_mupi_run_atmosphere.py` (Pillow und `rsvg-convert` auf dem Entwicklungsrechner). Das finale Cover für Qt/Admin (512×512) und das Icon (256×256) werden vom zweiten Skript aus denselben Spiel-Sprites zusammengestellt. Es ergänzt Licht, Texturen, Libelle, Wasserfall und Vordergrundlayer. **Das alte nach vorne blickende MuPi-Bild ist nicht Bestandteil des Game-Pakets.**
+Alle Grafiken sind reproduzierbar: die Basisillustrationen aus `generate_mupi_run_sprites.py`, Atmosphäre aus `generate_mupi_run_atmosphere.py`, neue Wald-/Brückenobjekte aus `generate_mupi_run_zones.py`, UI-Logo aus `generate_mupi_run_logo.py` und das finale Cover/Icon aus `generate_mupi_run_cover.py`. Auf dem Entwicklungsrechner werden Pillow und `rsvg-convert` benötigt; auf der Box nur die gepackten lokalen PNGs. **Das alte nach vorne blickende MuPi-Bild ist nicht Bestandteil des Game-Pakets.**
 
 ## Spiel
 
 - **Ziel:** Möglichst weit laufen; den Distanzrekord übertreffen.
-- **Springen:** Baumstämme, Wurzeln, kleine Steine, Wasserwirbel und verlorene Stiefel.
-- **Ducken:** Tief hängende Äste, Ranken und Weidenzweige.
+- **Springen:** Baumstämme, Wurzeln, echte Steinhindernisse, große Sprungsteine, Wasserwirbel und verlorene Stiefel.
+- **Ducken:** Tief hängende Äste, Ranken, Weidenzweige und **niedrige Brücken über alle drei Spuren**. Die Brücke ist ein echtes Kollisionselement – Ausweichen nach links/rechts reicht nicht; MuPi muss sich tatsächlich ducken.
 - **Ausweichen:** Große Felsen, Baumstümpfe, Schilf und Körbe.
+- **Streckenwechsel:** In wiederkehrender Folge Flussbett (0–195 m), Holzsteg (195–360 m), trockener Waldpfad (360–530 m), danach Fluss und Wiederholung. Die Zonen werden pro Perspektivbereich anhand des tatsächlichen Laufwegs gerendert.
+- **Lernkurve:** Erst einzelne Sprung- und Ausweichobjekte, danach eine garantierte Brücke zum Ducken; anschließend variable Hinderniskombinationen. Kindgerecht angepasste Aktionsfenster und geschwindigkeitsabhängige Hinweise vor Kollisionen.
 - **Tempo:** Von 13 bis 29 Einheiten je Sekunde steigend; ab 125 Metern mehr Hinderniskombinationen.
 - **Fairness:** Höchstens zwei blockierte Spuren je Welle. Mindestens eine freie Spur bleibt vorhanden.
 - **Offline-Rekord:** Gespeichert als `bestMeters` im MuPiBox-Plugin-Speicher und über Updates beibehalten.
@@ -59,6 +67,9 @@ Im Repository-Stamm:
 ```bash
 python3 tools/generate_mupi_run_sprites.py
 python3 tools/generate_mupi_run_atmosphere.py
+python3 tools/generate_mupi_run_zones.py
+python3 tools/generate_mupi_run_logo.py
+python3 tools/generate_mupi_run_cover.py
 python3 tools/build_mupi_run.py
 python3 tools/mupiapp.py validate dist/mupi-run.mupiapp
 node --check examples/mupi-run/app.js

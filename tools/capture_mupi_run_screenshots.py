@@ -86,6 +86,19 @@ async def main():
             await call('Runtime.evaluate',{'expression':"document.dispatchEvent(new KeyboardEvent('keydown', {code:'ArrowUp', key:'ArrowUp', bubbles:true}));"})
             await asyncio.sleep(.24)
             await capture('screenshot-jump.webp')
+            # These are real Canvas renders of deterministic playable scenes,
+            # not AI concept imagery or composited screenshots.
+            async def scene(distance, obstacles, lane=0, mode='running'):
+                source="window.__MuPiRunPreview.setScene(" + json.dumps(distance) + "," + json.dumps(obstacles) + "," + json.dumps(lane) + "," + json.dumps(mode) + ")"
+                check=await call('Runtime.evaluate', {'expression':source,'returnByValue':True})
+                assert check.get('result',{}).get('value') is True, check
+                await asyncio.sleep(.1)
+            await scene(122,[{'lane':None,'item':'low-bridge','kind':'duck','z':17}],0,'duck')
+            await capture('screenshot-duck-bridge.webp')
+            await scene(260,[{'lane':0,'item':'stump','kind':'avoid','z':25}],1,'running')
+            await capture('screenshot-boardwalk.webp')
+            await scene(418,[{'lane':0,'item':'stepping-stones','kind':'jump','z':26}],0,'jump')
+            await capture('screenshot-forest.webp')
             result=await call('Runtime.evaluate',{'expression':'JSON.stringify({phase:window.MuPiRun && document.querySelector("#overlay").classList.contains("hidden"),score:document.querySelector("#distance").textContent,loaded:document.querySelector("#world").width})','returnByValue':True})
             print('Browser state:',result.get('result',{}).get('value','unknown'))
     finally:

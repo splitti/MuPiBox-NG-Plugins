@@ -43,3 +43,32 @@ button:focus-visible { outline: 3px solid #fcef71; outline-offset: 3px; }
 .toast.visible { opacity: 1; }
 @media (max-width: 620px) { .hud { inset: 5px 7px auto; gap: 4px; }.small { height: 40px; width: 42px; font-size: 27px; border-radius: 12px; }.scores { gap: 4px; }.score, .best { min-width: 72px; height: 43px; padding: 4px 6px; border-radius: 12px; }.score { min-width: 83px; }.score span { font-size: 21px; }.score small { font-size: 8px; margin-bottom: 6px; }.best strong { font-size: 15px; }.logo { font-size: 23px; letter-spacing: -1px; margin-top: 6px; }.controls { inset: auto 8px 6px; }.control-group { gap: 4px; }.pad { border-radius: 13px; }.overlay { padding: 10px 25px; }.panel { padding: 10px 10px; }.keyhints { margin: 5px auto; } }
 @media (max-height: 360px) { .panel { padding: 7px 12px; }.panel h1 { margin: 0; }.keyhints { margin: 5px auto; }.panel .hint { display: none; }.controls { bottom: 5px; } }
+
+/* Branded forest-game HUD: actual custom alpha logo and glossy wooden badges. */
+.logo { width: 210px; height: 68px; object-fit: contain; margin-top: -9px; flex: none; filter: drop-shadow(0 3px 5px #07273578); }
+.score, .best {
+  background-image: linear-gradient(145deg,#1b2f3cb9,#233c3ed6),url("./art/wood-deck.png");
+  background-size: cover,180px 180px;
+  border: 2px solid #d6b978c7;
+  box-shadow: inset 0 1px 0 #fff4d463, inset 0 -5px 0 #0f2a2c73, 0 4px 9px #00181b65;
+}
+.score span { text-shadow: 0 2px 2px #00131b; }
+.best strong { color:#ffdc7d; text-shadow:0 1px 4px #382010; }
+.small,.pad {
+  background-image: linear-gradient(145deg,#274c58c7,#102938df);
+  border-color:#d2e2d0b8;
+  box-shadow:inset 0 2px 0 #ffffff43,0 4px 11px #08202c95;
+}
+.pad.action.jump { background-image:linear-gradient(165deg,#fff1af,#e3a13f 70%,#b5722b);color:#473620; }
+.pad.action.duck { background-image:linear-gradient(165deg,#e0fff2,#58d6bf 70%,#249b90);color:#264b4c; }
+.pad.action:active,.pad:active { box-shadow:inset 0 3px 8px #0006; }
+.overlay .panel {
+  background-image:linear-gradient(145deg,#214e59f3,#0a313cfa),url("./art/wood-deck.png");
+  background-size:cover,290px 290px;
+  border-color:#a8dfb0;
+  box-shadow: inset 0 2px 0 #eafff7b5,0 8px 0 #19332c,0 13px 35px #021e22c9;
+}
+@media (max-width:620px){
+  .logo{width:132px;height:47px;margin-top:-7px;}
+  .score,.best{min-width:71px;}
+}

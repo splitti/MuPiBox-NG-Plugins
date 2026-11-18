@@ -2,13 +2,13 @@
   "apiVersion": "1",
   "id": "community.mupi-run",
   "name": "MuPi Run",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.png",
   "cover": "cover.png",
   "author": "MuPiBox-NG Community",
-  "description": "MuPi Run mit orangefarbenem Axolotl aus der Rückansicht: atmosphärisches Wald-Flussbett, animierte Wasserspiegelungen, Wasserfall, Baum-Bogen und freigestellte Illustrationen.",
+  "description": "MuPi Run 0.4: Spielbares Wald-Flussbett, Holzsteg und Waldboden mit echten Brücken zum Ducken, Sprungsteinen, Ausweichmanövern und hochwertigen lokalen Spielgrafiken.",
   "permissions": [
     "storage",
     "controller"
