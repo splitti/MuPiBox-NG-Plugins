@@ -63,9 +63,8 @@ def make():
         sd.ellipse((x-rr,y-rr,x+rr,y+rr),fill=col)
     splashes=splashes.filter(ImageFilter.GaussianBlur(1.2));bg.alpha_composite(splashes)
     # Near camera character rear, its six filaments and tail must remain legible.
-    running=Image.open(APP/'source/mupi-run-reference.gif')
-    running.seek(0)
-    character=running.convert('RGBA').resize((440,440),Image.Resampling.LANCZOS)
+    sheet=Image.open(APP/'source/mupi-run-24-source.png').convert('RGBA')
+    character=sheet.crop((0,0,512,512)).resize((440,440),Image.Resampling.LANCZOS)
     shadow=Image.new('RGBA',(W,H),(0,0,0,0));d=ImageDraw.Draw(shadow,'RGBA')
     d.ellipse((333,940,703,1008),fill=(1,36,50,176))
     shadow=shadow.filter(ImageFilter.GaussianBlur(18));bg.alpha_composite(shadow)

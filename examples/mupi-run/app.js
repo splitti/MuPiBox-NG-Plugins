@@ -8,7 +8,7 @@
   // Optimized transparent local art sprites; no online assets or SVG engine needed at runtime.
   const art = Object.create(null);
   const spriteNames = [
-    'mupi-running-atlas','mupi-back','mupi-back-run-left','mupi-back-run-right',
+    'mupi-running-24','mupi-back','mupi-back-run-left','mupi-back-run-right',
     'mupi-tail','mupi-body',
     'mupi-body-run-0','mupi-body-run-1','mupi-body-run-2',
     'mupi-body-run-3','mupi-body-run-4','mupi-body-run-5',
@@ -19,7 +19,7 @@
   ];
   for (const name of spriteNames) {
     const image = new Image();
-    image.src = './art/' + name + (name==='mupi-running-atlas'?'.webp':'.png');
+    image.src = './art/' + name + (name==='mupi-running-24'?'.webp':'.png');
     art[name] = image;
   }
   function drawArt(name, cx, bottom, width, height, opacity=1) {
@@ -345,22 +345,22 @@
     // Compression is about the FOOT plane, so ducking never makes MuPi float.
     if(duck)ctx.scale(1,.69);
     else if(!jumping)ctx.rotate(wave*.018);
-    // The user's ORIGINAL animated MuPi GIF is prepacked into 20 cells.
-    // Unlike drawImage(GIF), atlas sampling advances every frame reliably in
-    // Chromium/Qt and pauses with the game. Head, spots and tail are precisely
-    // the actual uploaded image, not hand-drawn approximations.
-    const atlas=art['mupi-running-atlas'];
-    if(atlas && atlas.complete && atlas.naturalWidth===1100 && atlas.naturalHeight===880){
-      const pace=18+Math.min(7,Math.max(0,(state.speed-13)*.36));
-      const index=state.phase==='running' ? Math.floor(time*pace)%20 : 0;
-      const cell=220, drawSize=205;
+    // User-provided native 6x4, 24-frame sprite sheet.
+    // Each rendered pose is extracted unaltered from a 512px source cell
+    // and downscaled to 320px at build time. The game advances the actual
+    // 24 cells, not a GIF browser animation or a geometrically modeled MuPi.
+    const atlas=art['mupi-running-24'];
+    if(atlas && atlas.complete && atlas.naturalWidth===1920 && atlas.naturalHeight===1280){
+      const pace=20+Math.min(8,Math.max(0,(state.speed-13)*.47));
+      const index=state.phase==='running' ? Math.floor(time*pace)%24 : 0;
+      const cell=320, drawSize=205;
       ctx.imageSmoothingEnabled=true;
       ctx.imageSmoothingQuality='high';
-      ctx.drawImage(atlas,(index%5)*cell,Math.floor(index/5)*cell,cell,cell,
-        -drawSize/2,-drawSize*(260/280),drawSize,drawSize);
+      ctx.drawImage(atlas,(index%6)*cell,Math.floor(index/6)*cell,cell,cell,
+        -drawSize/2,-drawSize*(486/512),drawSize,drawSize);
       ctx.restore();
     }else{
-      // Fallback only if the user GIF failed to load.
+      // Fallback only if the user spritesheet failed to load.
       const phase=Math.floor((time*15.2/(Math.PI*2)*6))%6;
     const sprite=state.phase==='running'&&!duck&&!jumping ?
       'mupi-body-run-'+((phase+6)%6) : 'mupi-body';
@@ -791,8 +791,8 @@
           terrain:state.lastTerrain,obstacles:state.obstacles.map(o=>({...o})),
           missingSprites:Object.keys(art).filter(name=>!art[name].complete||!art[name].naturalWidth),
           controllerMode:gameElement.classList.contains('controller-active'),
-          usingUserGif:!!(art['mupi-running-atlas']&&art['mupi-running-atlas'].naturalWidth===1100),
-          gifFrame:Math.floor(state.time*(18+Math.min(7,Math.max(0,(state.speed-13)*.36))))%20
+          usingUserSheet:!!(art['mupi-running-24']&&art['mupi-running-24'].naturalWidth===1920),
+          sheetFrame:Math.floor(state.time*(20+Math.min(8,Math.max(0,(state.speed-13)*.47))))%24
         };
       }
     });
