@@ -30,6 +30,6 @@
     // Desktop previews may require an actual gesture to unblock HTML audio.
     for(const event of ['click','keydown','pointerup']) document.addEventListener(event,audio.unlock);
   }
-  window.MuPiRunSession={play:audio.play,exit(){exiting=true;sync();}};
+  window.MuPiRunSession={play:audio.play,prepare:audio.prepare,exit(){exiting=true;sync();}};
   sync();
 })();

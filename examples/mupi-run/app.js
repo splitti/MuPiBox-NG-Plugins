@@ -5,16 +5,43 @@
   const sdk = window.MuPiBoxSDK;
   const canvas = document.getElementById('world');
   const ctx = canvas.getContext('2d', {alpha: false});
-  const art = Object.create(null);
   const atlas = window.MuPiPoses;
   const audio = window.MuPiRunSession;
-  const loading = window.MuPiRunArt.map(file => new Promise((resolve, reject) => {
-    const img = new Image();
-    art[file.split('.')[0]] = img;
-    img.onload = resolve;
-    img.onerror = () => reject(new Error(file));
-    img.src = './art/' + file;
-  }));
+  const hostContext=sdk.getContext().catch(()=>null);
+  const audioReady=hostContext.then(context=>audio.prepare(context));
+  const runTiles=Object.create(null);
+  let sourceWidth=0;
+  async function prepareAtlas(file) {
+    const image=new Image();
+    image.src='./art/'+file;
+    await image.decode();
+    const name=file.split('.')[0], mode=name.split('-')[0];
+    const running=name==='mupi-running-24';
+    if(running) sourceWidth=image.naturalWidth;
+    const spec=running ? null : atlas.actions[mode];
+    const columns=running ? 6 : atlas.columns, count=running ? 24 : atlas.perPage;
+    const [sw,sh]=running ? [320,320] : spec.size;
+    const [cw,ch]=running ? [320,320] : spec.cell;
+    const scale=205/512 * .7; // 560-pixel render surface at the 800px reference size
+    const w=running ? 144 : Math.ceil(spec.draw[0]*scale);
+    const h=running ? 144 : Math.ceil(spec.draw[1]*scale);
+    const page=document.createElement('canvas');
+    page.width=columns*(w+2); page.height=Math.ceil(count/columns)*(h+2);
+    const paint=page.getContext('2d');
+    paint.imageSmoothingQuality='high';
+    for(let i=0;i<count;i++){
+      const x=i%columns, y=Math.floor(i/columns), gutter=running?0:1;
+      paint.drawImage(image,x*cw+gutter,y*ch+gutter,sw,sh,x*(w+2)+1,y*(h+2)+1,w,h);
+    }
+    runTiles[name]={page,columns,w,h};
+  }
+  async function prepareRunner() {
+    // Keep just one full-size source sheet in use during conversion.
+    for(const file of window.MuPiRunArt) {
+      if(file!=='logo-ui.png') await prepareAtlas(file);
+    }
+  }
+  const runnerReady=prepareRunner();
   const world = window.createRunWorld(ctx, game);
   const overlay = document.getElementById('overlay');
   const headline = document.getElementById('headline');
@@ -25,6 +52,7 @@
   const distanceLabel = document.getElementById('distance');
   const noteLabel = document.getElementById('notes');
   let ready = false;
+  let loadingError='';
   const toast = document.getElementById('toast');
   let state = game.fresh((Date.now() ^ 0x643bd8) >>> 0);
   let best = 0, lang = 'de', lastFrame = 0, lastLevel = 1, toastUntil = 0;
@@ -73,18 +101,15 @@
     const elevation = game.jumpHeight(state)/45;
     ellipse(p.x,p.y+1,32-elevation*9,5-elevation*1.6,'rgba(30,35,25,'+(.36-elevation*.17)+')');
     const scale = 205 / 512;
-    if (visible.name === 'run') {
-      const im=art['mupi-running-24'];
-      if (im.naturalWidth) ctx.drawImage(im,visible.frame%6*320,Math.floor(visible.frame/6)*320,320,320,
-        p.x-256*scale,p.y-486*scale,205,205);
-      return;
-    }
-    const spec=atlas.actions[visible.name];
-    const tile=visible.tile%atlas.perPage;
-    const page=art[visible.name+'-'+Math.floor(visible.tile/atlas.perPage)];
-    if(page.naturalWidth) ctx.drawImage(page,tile%atlas.columns*spec.cell[0]+1,
-      Math.floor(tile/atlas.columns)*spec.cell[1]+1,spec.size[0],spec.size[1],
-      p.x-spec.origin[0]*scale,p.y-spec.origin[1]*scale,spec.draw[0]*scale,spec.draw[1]*scale);
+    const running=visible.name==='run';
+    const name=running ? 'mupi-running-24' : visible.name+'-'+Math.floor(visible.tile/atlas.perPage);
+    const tile=running ? visible.frame : visible.tile%atlas.perPage;
+    const {page,columns,w,h}=runTiles[name];
+    const spec=running ? null : atlas.actions[visible.name];
+    const [ox,oy]=running ? [256,486] : spec.origin;
+    const [dw,dh]=running ? [512,512] : spec.draw;
+    ctx.drawImage(page,(tile%columns)*(w+2)+1,Math.floor(tile/columns)*(h+2)+1,w,h,
+      p.x-ox*scale,p.y-oy*scale,dw*scale,dh*scale);
   }
   const hazards = {
     rock:['moss-rock',76,36], boulder:['moss-rock',125,101], fox:['sleeping-fox',116,78],
@@ -146,7 +171,9 @@
     overlay.classList.remove('hidden');
     if(phase==='ready'){
       headline.innerHTML='MuPi <em>RUN</em>';
-      message.textContent=tr('intro');primary.textContent=tr('start');
+      const loadingLabels={de:'Spiel wird geladen …',en:'Loading game …',fr:'Chargement …',es:'Cargando …',it:'Caricamento …',nl:'Spel laden …',sv:'Laddar …'};
+      message.textContent=loadingError || tr('intro');
+      primary.textContent=ready ? tr('start') : loadingLabels[lang];
     }else if(phase==='paused'){
       headline.textContent=tr('pause');
       message.textContent=tr('pausedesc');primary.textContent=tr('resume');
@@ -339,25 +366,25 @@
           jumpAge:state.jumpAge,duckAge:state.duckAge,waves:state.waves,
           phaseJump:state.jumpAge,phaseDuck:state.duckAge,
           terrain:state.lastTerrain,obstacles:state.obstacles.map(o=>({...o})),
-          missingSprites:Object.keys(art).filter(name=>!art[name].complete||!art[name].naturalWidth),
+          missingSprites:window.MuPiRunArt.filter(file=>file!=='logo-ui.png' && !runTiles[file.split('.')[0]]),
           controllerMode:gameElement.classList.contains('controller-active'),
-          usingUserSheet:!!(art['mupi-running-24']&&art['mupi-running-24'].naturalWidth===1920),
+          usingUserSheet:sourceWidth===1920,
           sheetFrame:Math.floor(state.runPose), pose:pose(), notes:state.noteCount, ready
         };
       }
     });
   }
   primary.disabled=true;
-  Promise.all([...loading,world.ready]).then(()=>{
-    ready=true;primary.disabled=false;render();
-  }).catch(error=>{message.textContent='Grafik konnte nicht geladen werden: '+error.message;});
+  Promise.all([runnerReady,world.ready,audioReady]).then(()=>{
+    ready=true;primary.disabled=false;renderOverlay();render();
+  }).catch(error=>{loadingError='Laden fehlgeschlagen: '+error.message; renderOverlay();});
   window.addEventListener('resize',()=>{resize();if(ready)render();});
   resize();renderOverlay();
   window.requestAnimationFrame(frame);
 
   (async()=>{
     try{
-      const context=await sdk.getContext();
+      const context=await hostContext;
       const candidate=String(context&&context.language||'').slice(0,2).toLowerCase();
       lang=languages[candidate]?candidate:'de';
     }catch(_){

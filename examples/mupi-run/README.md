@@ -1,4 +1,4 @@
-# MuPi Run 0.8.2
+# MuPi Run 0.8.3
 
 Sammle goldene Noten im Flussbett, auf dem Holzsteg und auf dem Waldpfad. Spring über den umgestürzten Stamm, grätsche unter dem Querbalken durch und wechsle die Spur, wenn ein Fuchs auf dem Weg schläft. Die Distanz bestimmt den Rekord. Die Noten zählen für den jeweiligen Lauf.
 
@@ -28,7 +28,11 @@ Alle Streckenobjekte sind in Metern relativ zur Kamera platziert. Dieselbe Proje
 
 Notenreihen folgen in den Hinderniswellen einer passierbaren Spur. Animationsphasen für Goldreflex und Flügelschlag werden beim Start einmal gerendert. Das Spiel zeichnet die transparenten MuPi-Bilder aus sechs WebP-Seiten mit je 60 Kacheln. Jede Seite passt in eine 2048-Pixel-Textur. Das Paket enthält die verwendeten Grafiken lokal.
 
+Vor dem ersten Lauf dekodiert MuPi Run die 24 Laufposen und alle Aktionskacheln. Sie liegen in sieben transparenten Canvas-Flächen in Spielauflösung. Die Starttaste wird nach der Vorbereitung freigegeben.
+
 ## Musik und Soundeffekte
+
+Ab NG 0.2.0-alpha.68 bereitet der native Player Sprung, Grätsche und Sammelton im Menü stumm vor. Beim Spielen verwendet er die dekodierten PCM-Daten erneut. Ältere Hosts spielen die Effekte wie bisher beim Auslösen ab.
 
 Der Musik-Loop „Happy Trancin“ sowie Sprung, Grätsche und Notensammeln sind im Paket enthalten. Laufschritt und Kilometersignal sind für spätere Dateien vorbereitet. Urheber, Quellen, Lizenzlinks und die verwendeten Fassungen stehen in den [Audio-Credits](AUDIO-CREDITS.txt). Die Credits sind auch im Spielmenü einsehbar.
 
