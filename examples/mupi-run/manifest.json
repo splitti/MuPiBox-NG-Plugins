@@ -2,16 +2,17 @@
   "apiVersion": "1",
   "id": "community.mupi-run",
   "name": "MuPi Run",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.png",
   "cover": "cover.png",
   "author": "MuPiBox-NG Community",
-  "description": "MuPi Run mit dem originalen transparenten 24-Frame-Spritesheet: sechs Spalten, vier Reihen, gesteuerte Laufanimation, Fluss-, Wald- und Brückenabschnitte.",
+  "description": "Sammle goldene Noten im Wald und Flussbett, spring über Stämme und grätsche unter Brücken hindurch.",
   "permissions": [
     "storage",
-    "controller"
+    "controller",
+    "audio"
   ],
   "category": "games",
   "display": {

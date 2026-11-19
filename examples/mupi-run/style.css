@@ -47,7 +47,7 @@ button:focus-visible { outline: 3px solid #fcef71; outline-offset: 3px; }
 /* Branded forest-game HUD: actual custom alpha logo and glossy wooden badges. */
 .logo { width: 210px; height: 68px; object-fit: contain; margin-top: -9px; flex: none; filter: drop-shadow(0 3px 5px #07273578); }
 .score, .best {
-  background-image: linear-gradient(145deg,#1b2f3cb9,#233c3ed6),url("./art/wood-deck.png");
+  background-image: linear-gradient(145deg,#1b2f3cb9,#233c3ed6),url("./art/ground-boardwalk.webp");
   background-size: cover,180px 180px;
   border: 2px solid #d6b978c7;
   box-shadow: inset 0 1px 0 #fff4d463, inset 0 -5px 0 #0f2a2c73, 0 4px 9px #00181b65;
@@ -63,7 +63,7 @@ button:focus-visible { outline: 3px solid #fcef71; outline-offset: 3px; }
 .pad.action.duck { background-image:linear-gradient(165deg,#e0fff2,#58d6bf 70%,#249b90);color:#264b4c; }
 .pad.action:active,.pad:active { box-shadow:inset 0 3px 8px #0006; }
 .overlay .panel {
-  background-image:linear-gradient(145deg,#214e59f3,#0a313cfa),url("./art/wood-deck.png");
+  background-image:linear-gradient(145deg,#214e59f3,#0a313cfa),url("./art/ground-boardwalk.webp");
   background-size:cover,290px 290px;
   border-color:#a8dfb0;
   box-shadow: inset 0 2px 0 #eafff7b5,0 8px 0 #19332c,0 13px 35px #021e22c9;
@@ -84,3 +84,31 @@ button:focus-visible { outline: 3px solid #fcef71; outline-offset: 3px; }
   .pad { width:52px;height:57px; border-radius:14px; }
   .pad.action { width:58px;height:60px; }
 }
+
+/* A compact trail HUD keeps the vanishing point and the outside lanes clear. */
+.hud { align-items:center; height:46px; }
+.hud .logo { width:144px; height:47px; margin:0; filter:none; }
+.hud .small, .scores > div { border:1px solid #e9daa389; border-radius:12px; background:#182e28ec; box-shadow:0 2px 6px #0c1a1f65; }
+.hud .small { width:45px; height:44px; }
+.scores > div { height:44px; padding:3px 12px; min-width:68px; }
+.scores .score { min-width:90px; }
+.scores .note-score { min-width:72px; }
+.note-score b { color:#ffd268; font-size:26px; }
+.score span { font-size:23px; font-variant-numeric:tabular-nums; }
+.best strong { font-size:16px; }
+.hud [hidden] { display:none; }
+.overlay { background:linear-gradient(90deg,#10271cd9,#132a2150 72%,#112c1908); backdrop-filter:none; justify-items:start; padding:14px clamp(18px,6vw,64px); }
+.overlay .panel { width:min(380px,100%); padding:22px; text-align:left; border:1px solid #e1d39c9a; border-radius:20px; background:#173329f0; box-shadow:0 8px 26px #13251466; }
+.panel h1 { color:#ffdc86; font-size:46px; line-height:1.05; margin:0 0 12px; }
+.panel p { color:#f0ecda; line-height:1.45; }
+.keyhints { justify-content:flex-start; gap:5px; }
+.keyhints span { min-width:0; border-radius:6px; background:#254338; font-size:13px; padding:6px; }
+.keyhints small { color:#c8dccc; }
+.primary { border:1px solid #ffdf9c; background:linear-gradient(#ffdf85,#eab447); color:#343321; box-shadow:0 3px 0 #98703b; border-radius:10px; }
+.panel .hint { color:#c8d8ca; }
+@media(max-width:620px){ .hud{gap:3px}.hud .logo{width:78px;height:32px}.scores{gap:3px}.scores > div,.scores .score,.scores .note-score{min-width:0;padding:2px 5px}.hud .small{width:38px;height:38px}.score span{font-size:17px}.note-score b{font-size:18px} }
+.note-score.collected { border-color:#ffe292; background:#4c4828; }
+
+.credits { margin-top:7px; color:#e4dfc5; font-size:12px; }
+.credits summary { cursor:pointer; display:list-item; width:max-content; padding:4px 0; }
+.credits p { font-size:12px; line-height:1.4; }

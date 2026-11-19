@@ -1,118 +1,73 @@
-# MuPi Run – spielbarer Wald-/Brücken-Runner (0.7.0)
+# MuPi Run 0.8.0
 
-Eigenständige, vollständig offline spielbare MuPiBox-NG-Community-App für **800 × 480 Pixel** (5 Zoll). MuPi läuft aus der **Rückansicht** durch ein flaches, sich windendes Wald-Flussbett: ein orangefarbenes Axolotl mit exakt **drei Kiemenästen links und drei rechts**, eigenem Schweif und Lauf-/Sprung-/Duckanimation. Es gibt keine Fremdspiele, gekauften Assets, CDN- oder Online-Abhängigkeiten.
+Sammle goldene Noten im Flussbett, auf dem Holzsteg und auf dem Waldpfad. Spring über den umgestürzten Stamm, grätsche unter dem Querbalken durch und wechsle die Spur, wenn ein Fuchs auf dem Weg schläft. Die Distanz bestimmt den Rekord. Die Noten zählen für den jeweiligen Lauf.
 
-## Screencast – durchgehender Lauf (36 Sekunden, MP4, 30 FPS)
+[Durchgehenden Lauf ansehen](mupi-run-screencast.mp4)
 
-[MuPi Run Screencast ansehen](mupi-run-screencast.mp4)
+| Flussbett | Holzsteg | Waldpfad |
+| --- | --- | --- |
+| ![MuPi im Flussbett](screenshot-game.webp) | ![Holzsteg mit Geländer](screenshot-boardwalk.webp) | ![Sprung auf dem Waldweg](screenshot-forest.webp) |
 
-![Videovorschau aus dem tatsächlich laufenden Spiel](screencast-poster.webp)
-
-Die Aufnahme kommt **direkt aus Chromium mit dem laufenden Canvas-Spiel** (800 × 480, H.264, 30 FPS, ohne Ton). Es ist ein **vollständig durchgehender Lauf mit monotonem Meterstand ohne Szenensprünge** durch Flussbett, Holzsteg und Waldpfad. Ein automatischer Spieler drückt echte Tastaturaktionen für Spurwechsel, Sprung und Ducken; er ersetzt keine Kollisionsprüfung und überspringt keine Strecke. Die Datei ist **keine** Aufnahme von Testbox 83 und **kein** KI-Konzeptvideo.
-
-Reproduzierbar aufnehmen (Chromium, Python-websockets, Pillow und ffmpeg):
-
-```bash
-python3 tools/record_mupi_run_screencast.py
-```
-
-Die MP4-Datei ist ausschließlich zur Dokumentation im Repository vorhanden. Sie wird **nicht** ins installierbare `.mupiapp`-Paket übernommen.
-
-## Echte Community-App-Screenshots (800 × 480)
-
-Die Aufnahmen liegen bewusst **direkt im Anwendungsverzeichnis**.
-
-![MuPi Run mit orangefarbenem Axolotl von hinten und individuell illustrierten Waldobjekten](screenshot-game.webp)
-
-![Echte niedrige Brücke mit Ducken unter dem Hindernis](screenshot-duck-bridge.webp)
-
-![MuPi läuft unter dem geteilten Brückenbalken hindurch](screenshot-bridge-passing.webp)
-
-![Begehbarer Holzsteg mit Geländer und Hindernissen](screenshot-boardwalk.webp)
-
-![MuPi mit sichtbarem Fußkontakt auf Holzplanken](screenshot-ground-contact.webp)
-
-![Waldpfad mit Erde und Sprungsteinen](screenshot-forest.webp)
-
-![MuPi Run beim Sprung über das Flussbett](screenshot-jump.webp)
-
-![MuPi Run Startmenü](screenshot-start.webp)
-
-Die Screenshots wurden aus dem **wirklich laufenden HTML-Canvas-Spiel** mit Chromium bei 800 × 480 aufgenommen, **nicht** aus Konzeptbildern. Ducken, Holzsteg und Waldpfad sind deterministische Vorschau-Szenen derselben Kollisions- und Render-Engine. Kein Hardwaretest auf Box 83.
-
-## Grafiken
-
-Die Illustrationen sind **eigenständige, freigestellte** PNG-Sprites (transparentes Alpha) und werden als perspektivisch skalierte einzelne Elemente in den Game-Canvas eingesetzt. Sie sind **keine einfachen Canvas-Kreise oder -Rechtecke**:
-
-- **Originales 24-Frame-MuPi-Spritesheet:** Das vom Nutzer bereitgestellte **3072×2048-PNG mit echter Transparenz** ist unter `source/mupi-run-24-source.png` gesichert. Es enthält **6 Spalten × 4 Reihen** mit 512×512 Pixel großen Zellen. `python3 tools/import_mupi_run_spritesheet.py` packt alle 24 vorhandenen Posen ohne Spiegelung oder generierte Zwischenbilder in den optimierten **WebP-Atlas `art/mupi-running-24.webp`** (6×4 Zellen à 320×320 Pixel). Der Canvas liest jede Zelle direkt, schaltet sie mit an die Laufgeschwindigkeit angepasster Bildrate durch und stoppt die Bewegung bei Pause. Der Fußanker liegt bei Quellpixel y≈486/512 und wird auf die Spiel-Bodenebene ausgerichtet. Die frühere 20-Frame-GIF-Animation wurde vollständig durch dieses Spritesheet ersetzt.
-- **Springen und Ducken:** Vorläufig wird der neue 24-Frame-MuPi angehoben beziehungsweise vertikal gestaucht. Separate, hochwertige Sprung-/Duck-Sprites sind in 0.7.0 **noch nicht enthalten**.
-- **Wald:** Laubbaum, Nadelbaum, Hängeweide, Farn, Schilf, Blumen, Pilze. Mehrschichtiger Waldhintergrund und Sonnenstrahlen.
-- **Fluss:** Organisch gewundenes Wasserbett, transparente animierte Wassertextur mit Lichtbrechung, eingetauchte Steine, weiße Schaumlinien am Ufer und Sonnenreflexe.
-- **Landschaft:** Illustrierter Baumstamm-Bogen, seitlicher Wasserfall, sonnige und schattige Waldschichten, Vordergrundkulisse und schwebende Libelle (keine zusätzlichen Kollisionen).
-- **Hindernisse:** Moosfelsen, umgestürzter Baumstamm, Wurzel/Ast, Wasserplatsch, Stiefel, Baumstumpf, Schilf, Korb sowie tief hängende Äste/Ranken.
-
-Die **SVG-Quellen der eigenständigen Umgebungsillustrationen** liegen neben ihren PNG-Pendants unter `art/`. Die zusätzlichen Atmosphären- und Oberflächentexturen werden im Python-Skript `tools/generate_mupi_run_atmosphere.py` generiert. Auf der Box werden die lokalen PNGs und der WebP-Spritesheet-Atlas geladen.
-
-Alle Grafiken sind reproduzierbar: das originale 24-Frame-PNG wird mit dem Import-Skript für die Laufzeit vorbereitet; die Basisillustrationen aus `generate_mupi_run_sprites.py`, Atmosphäre aus `generate_mupi_run_atmosphere.py`, neue Wald-/Brückenobjekte aus `generate_mupi_run_zones.py`, UI-Logo aus `generate_mupi_run_logo.py` und das finale Cover/Icon aus `generate_mupi_run_cover.py`. Auf dem Entwicklungsrechner werden Pillow und `rsvg-convert` benötigt; auf der Box nur die gepackten lokalen PNGs sowie der WebP-Atlas. **Das alte nach vorne blickende MuPi-Bild ist nicht Bestandteil des Game-Pakets.**
-
-## Spiel
-
-- **Ziel:** Möglichst weit laufen; den Distanzrekord übertreffen.
-- **Springen:** Baumstämme, Wurzeln, echte Steinhindernisse, große Sprungsteine, Wasserwirbel und verlorene Stiefel.
-- **Ducken:** Tief hängende Äste, Ranken, Weidenzweige und **niedrige Brücken über alle drei Spuren**. Die Brücke ist ein echtes Kollisionselement – Ausweichen nach links/rechts reicht nicht; MuPi muss sich tatsächlich ducken.
-- **Ausweichen:** Große Felsen, Baumstümpfe, Schilf und Körbe.
-- **Brückendarstellung:** Eine echte Duck-Brücke besitzt getrennte Pfosten (`duck-bridge-rear.png`) und einen Querbalken (`duck-bridge-front.png`). Nur der Querbalken verdeckt MuPi kurz beim Durchlaufen und blendet hinter der Kollisionsstelle aus. Dekorative Brücken und Wasserfälle haben feste Weltpositionen, kommen näher und ziehen vorbei.
-- **Spurwechsel-Kollision:** Der physikalische Kontakt wird während eines Spurwechsels anhand derselben interpolierten Position entschieden, die die sichtbare Spielfigur verwendet. Kein sofortiger unsichtbarer Spurtwechsel mehr.
-- **Steuerung:** Touchbuttons sind kleiner, bei Verwendung von Controller oder Tastatur werden sie für freie Sicht ausgeblendet und bei Touchbedienung wieder eingeblendet.
-- **Streckenwechsel:** In wiederkehrender Folge Flussbett (0–195 m), Holzsteg (195–360 m), trockener Waldpfad (360–530 m), danach Fluss und Wiederholung. Die Zonen werden pro Perspektivbereich anhand des tatsächlichen Laufwegs gerendert.
-- **Lernkurve:** Erst einzelne Sprung- und Ausweichobjekte, danach eine garantierte Brücke zum Ducken; anschließend variable Hinderniskombinationen. Kindgerecht angepasste Aktionsfenster und geschwindigkeitsabhängige Hinweise vor Kollisionen.
-- **Tempo:** Von 13 bis 29 Einheiten je Sekunde steigend; ab 125 Metern mehr Hinderniskombinationen.
-- **Fairness:** Höchstens zwei blockierte Spuren je Welle. Mindestens eine freie Spur bleibt vorhanden.
-- **Offline-Rekord:** Gespeichert als `bestMeters` im MuPiBox-Plugin-Speicher und über Updates beibehalten.
-- **Sprachen:** Deutsch, Englisch, Französisch, Spanisch, Italienisch, Niederländisch und Schwedisch (Box-Sprache).
+![Grätsche unter der niedrigen Brücke](screenshot-bridge-passing.webp)
 
 ## Steuerung
 
 | Aktion | Controller | Tastatur | Touch |
 | --- | --- | --- | --- |
-| Spurwechsel | Steuerkreuz links/rechts | ← / → oder A / D | Pfeiltasten oder links/rechts wischen |
-| Springen | A / X / ↑ | ↑ / W / Leertaste | Gelber Button oder nach oben wischen |
-| Ducken | B / Y / ↓ | ↓ / S | Türkiser Button oder nach unten wischen |
-| Pause/Weiter | START | P | Pausenknopf |
-| Zurück zur MuPiBox | BACK / SELECT | Escape | Zurückpfeil oben links |
-| Start/Neustart | A / START im Menü | Enter / Leertaste | Startknopf |
+| Spurwechsel | Steuerkreuz links/rechts | ← / → oder A / D | Pfeile oder horizontal wischen |
+| Sprung | A / X / ↑ | ↑, W oder Leertaste | Sprungknopf oder nach oben wischen |
+| Grätsche | B / Y / ↓ | ↓ oder S | Grätschenknopf oder nach unten wischen |
+| Pause und Weiter | START | P | Pausenknopf |
+| Verlassen | BACK / SELECT | Escape | Zurückpfeil oben links |
 
-**Wichtig:** B dient in diesem Spiel dem Ducken. Verlassen mit BACK/SELECT beziehungsweise dem sichtbaren Zurückpfeil. Bei Verlust des App-Fokus wird der Lauf pausiert.
+MuPi übernimmt beim Tastendruck die aktuell sichtbare der 24 Laufposen. Beide Aktionen haben 35 Bilder bei 30 FPS. Beim Sprung beginnt die Landung mit Bild 23, die tiefe Gleitphase liegt in den Bildern 9 bis 21, jeweils ab null gezählt. Figur und Schatten verwenden denselben Bodenanker. Die Sprunghöhe ist im Sprite enthalten. Der Lauf setzt mit dem zum letzten Aktionsbild passenden Bein wieder ein. Bei Pause bleibt die Pose stehen.
 
-## Paket & Tests
+## Streckenaufbau und Grafik
 
-Im Repository-Stamm:
+Alle Streckenobjekte sind in Metern relativ zur Kamera platziert. Dieselbe Projektion bestimmt Spur, Tiefe, Größe und Kontaktpunkt. Der Boden wird streifenweise aus drei vorberechneten Texturen abgetastet. Ein Ring mit 16 wiederverwendeten Abschnitten hält nur die Umgebung in Sichtweite. Bäume, Steine, Farn und Schmetterlinge nähern sich mit der Strecke. Ein separater Zufallswert je Abschnitt bestimmt Position und Erscheinung. Schmetterlinge haben rote, violette oder gelbe Flügel und animierten Flügelschlag.
 
-```bash
-python3 tools/generate_mupi_run_sprites.py
-python3 tools/generate_mupi_run_atmosphere.py
-python3 tools/generate_mupi_run_zones.py
-python3 tools/generate_mupi_run_logo.py
-python3 tools/import_mupi_run_spritesheet.py
-python3 tools/import_mupi_run_spritesheet.py
-python3 tools/generate_mupi_run_cover.py
+Notenreihen folgen in den Hinderniswellen einer passierbaren Spur. Animationsphasen für Goldreflex und Flügelschlag werden beim Start einmal gerendert. Das Spiel zeichnet die transparenten MuPi-Bilder aus sechs WebP-Seiten mit je 60 Kacheln. Jede Seite passt in eine 2048-Pixel-Textur. Das Paket enthält die verwendeten Grafiken lokal.
+
+## Musik und Soundeffekte
+
+Der Musik-Loop „Happy Trancin“ sowie Sprung, Grätsche und Notensammeln sind im Paket enthalten. Laufschritt und Kilometersignal sind für spätere Dateien vorbereitet. Urheber, Quellen, Lizenzlinks und die verwendeten Fassungen stehen in den [Audio-Credits](AUDIO-CREDITS.txt). Die Credits sind auch im Spielmenü einsehbar.
+
+Eine Datei je belegtem Platz unter `examples/mupi-run/assets/audio/` ablegen und das Paket neu bauen. Geeignete Endungen sind `.ogg`, `.mp3` oder `.wav`. Unbelegte Plätze bleiben still. Der Builder erzeugt die Dateizuordnung aus dem tatsächlichen Paketinhalt.
+
+| Dateiname ohne Endung | Auslöser |
+| --- | --- |
+| `music` | Musik-Loop während des aktiven Laufs |
+| `run` | Ein kurzer Schritt pro halbem Laufzyklus |
+| `jump` | Angenommener Sprung |
+| `slide` | Beginn der Grätsche |
+| `collect` | Einsammeln einer goldenen Note |
+| `kilometer` | Einmal beim Überschreiten jeder 1.000-Meter-Marke |
+
+Auf der Box verwendet die App die SDK-Funktionen für lokale Musik und Samples mit relativer Lautstärke. Im Browser übernimmt das Audioelement die Vorschau. Bei Pause, Fokusverlust, Spielende und Verlassen hält der Ton an. Der Stummschalter erscheint, sobald das Paket Audio enthält. Berechtigungen sind `storage`, `controller` und `audio`. Der vorhandene Distanzrekord bleibt unter `bestMeters` erhalten.
+
+## Paket und Prüfungen
+
+Im Repository-Stamm ausführen.
+
+```sh
 python3 tools/build_mupi_run.py
-python3 tools/mupiapp.py validate dist/mupi-run.mupiapp
-node --check examples/mupi-run/app.js
 node --test tests/mupi_run.test.cjs tests/mupi_run_autopilot.test.cjs
-python3 tests/mupi_run_sprite_test.py
 python3 tests/mupi_run_sheet_test.py
+python3 tests/mupi_run_sprite_test.py
 python3 tools/capture_mupi_run_screenshots.py
 python3 tools/record_mupi_run_screencast.py
 ```
 
-Das Build-Skript packt die zur Laufzeit benötigten `art/*.png` und `art/*.webp` sowie HTML, CSS, JS, SDK, Manifest, Cover und Icon. **Keine SVG-Quelltexte oder Screenshots im .mupiapp-Paket.** Manuelle Installation über den Pluginmanager ist möglich. Der offizielle Katalog erfordert vor der Veröffentlichung ein geprüftes Release-Asset und dessen SHA-256.
+Der Builder validiert `dist/mupi-run.mupiapp` mit dem Repository-Validator. Das Paket lässt sich im Pluginmanager manuell installieren. Screenshots und Screencast stammen aus Chromium bei 800 × 480. Die Galerie enthält auch gezielt eingestellte Testszenen. Der Screencast zeigt einen durchgehenden Lauf mit regulären Eingaben und dem aufgezeichneten Spielton.
 
-## Technischer Status
+Die drei Geländeabschnitte wurden im ausgepackten Installationspaket jeweils drei Sekunden in Headless-Chromium auf dem Entwicklungs-LXC gemessen (800 × 480, Software-Rendering). Der Median der Bildabstände lag bei 16,7 ms, das 95. Perzentil bei 16,7–16,8 ms. Eine Messung des nativen Qt-Webviews auf dem Raspberry Pi steht aus. Der automatisierte Logiklauf erreichte 1.264 m.
 
-- Automatisierte Spiellogiktests, JavaScript-Prüfung, Paketvalidierung und Chromium 800×480-Browser-Screenshots
-- **Noch ausstehend:** Echter Controller-/Qt-Test auf Testbox 83; Freigabe für den offiziellen Community-App-Katalog
+Die Aktionsatlanten lassen sich aus dem entpackten Originalpaket mit `python3 tools/import_mupi_run_actions.py PFAD_ZUM_AKTIONSPAKET` erneut erstellen. Für die Bodentexturen gibt es `python3 tools/render_mupi_run_ground.py` mit Pillow, NumPy und SciPy.
 
-## Rechte und Datenschutz
+## Bildnachweise und technische Vorbilder
 
-Eigenständig entwickelter Spielcode und eigene Waldgrafiken unter der Repository-Lizenz MIT. Das integrierte originale MuPi-Lauf-Spritesheet wurde vom Nutzer für diese Community-App zur Verfügung gestellt; die Rechte an dieser Charaktergrafik werden dadurch nicht automatisch auf MIT umgestellt. Keine übernommenen kommerziellen Fremd-Assets. Die App fordert nur `controller` und `storage` an; kein Netzwerk, keine Werbung, keine Tracker, keine Online-Dienste.
+- **MuPi.** Lauf-, Sprung- und Grätschengrafiken stammen aus den für dieses Spiel bereitgestellten MuPi-Referenzen und Aktions-Spritesheets. Die MIT-Lizenz des Spielcodes umfasst die Rechte an MuPi als Figur nicht automatisch.
+- **Waldkulisse und freigestellte Motive.** Waldpanorama, Fels, Stamm, Fuchs, Laubbaum, Farn, Tanne und Holzbrücke wurden für diese Version mit OpenAI-Bildgenerierung erstellt und für die Laufzeit zugeschnitten und komprimiert. Es wurden keine Grafikpakete anderer Spiele übernommen.
+- **Weitere Projektgrafik.** Bodenmaterialien, goldene Doppelnote und die drei Schmetterlingsfarben sind projektspezifisch gerendert. Geländer, Zweige, Logo und weitere vorhandene Illustrationen stammen aus MuPi Run.
+- **Wiederverwendung bewegter Elemente.** Unity erläutert am Runner *Trash Dash*, wie eingesammelte beziehungsweise aus dem Sichtfeld laufende Objekte für weitere Verwendungen bereitgehalten werden. [Unity Learn – Mobile Development Techniques](https://learn.unity.com/tutorial/mobile-development-techniques)
+- **Streckenperspektive.** Phaser beschreibt die Projektion von Streckenabschnitten und seitlichen Objekten aus der Verfolgerkamera. MuPi Run berechnet seine Projektion selbst. Beide Quellen dienten als technische Referenz. [Phaser – Pseudo-3D road](https://www.phaser.io/packs/pseudo-road)

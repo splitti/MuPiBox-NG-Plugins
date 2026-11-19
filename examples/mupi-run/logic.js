@@ -8,13 +8,13 @@
   'use strict';
   const LANES = [-1, 0, 1];
   // Generous timing for controller and touch reactions.
-  const JUMP_DURATION = 1.20;
-  const DUCK_DURATION = 1.25;
+  const JUMP_DURATION = 35 / 30;
+  const DUCK_DURATION = 35 / 30;
   const HIT_RADIUS = .55; // width of player + obstacle in lane units
   const kinds = {
-    jump: ['log', 'rock', 'root', 'ripple', 'boot', 'stepping-stones'],
+    jump: ['log', 'rock', 'root', 'stepping-stones'],
     duck: ['branch', 'vine', 'willow', 'low-bridge'],
-    avoid: ['boulder', 'stump', 'reeds', 'basket']
+    avoid: ['boulder', 'stump', 'reeds', 'fox']
   };
 
   const ZONES = Object.freeze([
@@ -32,6 +32,9 @@
     return {
       phase: 'ready', distance: 0, speed: 13, lane: 0, visualLane: 0,
       jumpAge: -1, duckAge: -1, obstacles: [], spawnIn: 1.5,
+      notes: [14, 20, 26].map(z => ({lane: 0, z})), noteCount: 0,
+      runPose: 0, entryPose: 0, resumePose: 0, steps: 0, stepPhase: 0,
+      scenerySeed: seed >>> 0,
       seed: (seed >>> 0) || 0x1badc0de, waves: 0,
       time: 0, crash: null, completedDucks: 0, completedJumps: 0,
       completedDodges: 0, lastTerrain: 'river'
@@ -52,12 +55,13 @@
     return Math.max(1.17, 2.12 - distance * 0.00108, 28 / speed);
   }
   function jumpHeight(s) {
-    if (s.jumpAge < 0 || s.jumpAge >= JUMP_DURATION) return 0;
-    return Math.sin(Math.PI * s.jumpAge / JUMP_DURATION) * 82;
+    if (s.jumpAge < 0 || s.jumpAge >= 23 / 30) return 0;
+    const t = s.jumpAge * 30 / 23;
+    return 45 * 4 * t * (1 - t);
   }
   function ducking(s) { return s.duckAge >= 0 && s.duckAge < DUCK_DURATION; }
 
-  function act(s, action) {
+  function act(s, action, resumePose = null) {
     if (action === 'start') {
       if (s.phase === 'ready') { s.phase = 'running'; return true; }
       return false;
@@ -70,16 +74,18 @@
     if (s.phase !== 'running') return false;
     if (action === 'left') { s.lane = Math.max(-1, s.lane - 1); return true; }
     if (action === 'right') { s.lane = Math.min(1, s.lane + 1); return true; }
-    if (action === 'jump' && s.jumpAge < 0) {
-      s.jumpAge = 0; s.duckAge = -1; return true;
-    }
-    if (action === 'duck' && s.jumpAge < 0) {
-      s.duckAge = 0; return true;
+    if ((action === 'jump' || action === 'duck') && s.jumpAge < 0 && s.duckAge < 0) {
+      s.entryPose = Math.floor(s.runPose) % 24;
+      s.resumePose = resumePose === null ? (s.entryPose >= 11 && s.entryPose < 23 ? 12 : 0) : resumePose;
+      if (action === 'jump') s.jumpAge = 0;
+      else s.duckAge = 0;
+      return true;
     }
     return false;
   }
 
   function spawnWave(s) {
+    const first = s.obstacles.length;
     const spawn = (lane,kind,item) => {
       s.obstacles.push({lane,z:83,kind,item,passed:false,checked:false});
     };
@@ -89,7 +95,7 @@
     else if(s.waves===1) spawn(1,'avoid','boulder');
     else if(s.waves===2) spawn(null,'duck','low-bridge');
     else {
-      const terrain=terrainAt(s.distance+60);
+      const terrain=terrainAt(s.distance+83-1.9);
       // A recurring low-hanging bridge, independent of the lane, creates
       // genuine duck moments even after the tutorial.
       const bridgeChance=terrain==='boardwalk'?.19:terrain==='forest'?.13:.11;
@@ -108,6 +114,13 @@
         }
       }
     }
+    // A line of notes leads down a passable lane, including on two-lane waves.
+    const wave = s.obstacles.slice(first);
+    const safe = LANES.filter(lane => wave.every(o => o.lane !== lane && o.lane !== null));
+    if (safe.length) {
+      const lane = safe[s.waves % safe.length];
+      for (const z of [73, 78, 83]) s.notes.push({lane, z});
+    }
     s.waves++;
   }
 
@@ -115,8 +128,8 @@
     // The visual and physics positions MUST agree while changing lanes.
     // A requested destination does not teleport MuPi past an obstacle.
     if (obstacle.lane!==null && Math.abs(s.visualLane-obstacle.lane)>HIT_RADIUS) return true;
-    if (obstacle.kind === 'jump') return jumpHeight(s) >= 28;
-    if (obstacle.kind === 'duck') return ducking(s) && s.duckAge >= 0.08;
+    if (obstacle.kind === 'jump') return jumpHeight(s) >= 11;
+    if (obstacle.kind === 'duck') return ducking(s) && s.duckAge >= 9 / 30 && s.duckAge < 22 / 30;
     return false;
   }
 
@@ -124,14 +137,20 @@
     if (s.phase !== 'running' || !Number.isFinite(delta) || delta <= 0) return s;
     const dt = Math.min(0.075, delta); // prevent resume/background frame skips
     s.time += dt;
-    if (s.jumpAge >= 0) {
-      s.jumpAge += dt;
-      if (s.jumpAge >= JUMP_DURATION) s.jumpAge = -1;
+    const ageKey = s.jumpAge >= 0 ? 'jumpAge' : s.duckAge >= 0 ? 'duckAge' : null;
+    let runTime = dt;
+    if (ageKey) {
+      s[ageKey] += dt;
+      runTime = Math.max(0, s[ageKey] - JUMP_DURATION);
+      if (s[ageKey] >= JUMP_DURATION) {
+        s[ageKey] = -1;
+        s.runPose = s.resumePose;
+      }
     }
-    if (s.duckAge >= 0) {
-      s.duckAge += dt;
-      if (s.duckAge >= DUCK_DURATION) s.duckAge = -1;
-    }
+    const stride = runTime * (20 + Math.min(8, (s.speed - 13) * .47));
+    s.runPose = (s.runPose + stride) % 24;
+    s.stepPhase += stride;
+    if (s.stepPhase >= 12) { s.stepPhase -= 12; s.steps++; }
     s.visualLane += (s.lane - s.visualLane) * Math.min(1, dt * 13.5);
     s.speed = speedAt(s.distance);
     const travel = s.speed * dt;
@@ -159,6 +178,16 @@
         else s.completedDodges++;
       }
     }
+    for (const note of s.notes) {
+      const before = note.z;
+      note.z -= travel;
+      if (s.phase === 'running' && before > 1.9 && note.z <= 1.9 &&
+          Math.abs(s.visualLane - note.lane) < .46) {
+        note.collected = true;
+        s.noteCount++;
+      }
+    }
+    s.notes = s.notes.filter(note => note.z > -8 && !note.collected);
     s.obstacles = s.obstacles.filter(o => o.z > -12);
     return s;
   }

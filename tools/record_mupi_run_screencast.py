@@ -12,6 +12,9 @@ import asyncio
 import base64
 import bisect
 import json
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
 import shutil
 import subprocess
 import tempfile
@@ -29,6 +32,48 @@ PORT=9483
 FPS=30
 DURATION=36.0
 
+# Development-only capture tap. Each real HTML audio player feeds a measured
+# channel and the MediaRecorder mix with its normal playback volume.
+CAPTURE_AUDIO = """
+const context = new AudioContext();
+const bus = context.createMediaStreamDestination();
+const recorder = new MediaRecorder(bus.stream, {mimeType:'audio/webm;codecs=opus'});
+const chunks = [], meters = [];
+const NativeAudio = window.Audio;
+window.Audio = class extends NativeAudio {
+  constructor(src) {
+    super(src);
+    const input = context.createMediaElementSource(this);
+    const meter = context.createAnalyser();
+    meter.fftSize = 256;
+    input.connect(meter); meter.connect(bus); meter.connect(context.destination);
+    meters.push({src, player:this, meter, data:new Float32Array(256), peak:0});
+  }
+};
+setInterval(() => {
+  for (const item of meters) {
+    item.meter.getFloatTimeDomainData(item.data);
+    for (const sample of item.data) item.peak = Math.max(item.peak, Math.abs(sample));
+  }
+}, 8);
+recorder.ondataavailable = e => chunks.push(e.data);
+window.captureStart = async () => {await context.resume(); recorder.start(); return true;};
+window.captureStop = () => new Promise(resolve => {
+  recorder.onstop = async () => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({data:reader.result.split(',')[1],
+      peaks:Object.fromEntries(meters.map(m => [m.src, m.peak]))});
+    reader.readAsDataURL(new Blob(chunks, {type:recorder.mimeType}));
+  };
+  recorder.stop();
+});
+"""
+
+class QuietFiles(SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+
 async def main():
     chrome=shutil.which('chromium') or shutil.which('chromium-browser')
     encoder=shutil.which('ffmpeg')
@@ -40,12 +85,15 @@ async def main():
         captured=temp/'captured'
         sequence=temp/'sequence'
         captured.mkdir();sequence.mkdir()
+        server = ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietFiles, directory=str(APP)))
+        Thread(target=server.serve_forever, daemon=True).start()
+        url = f'http://127.0.0.1:{server.server_port}/index.html'
         proc=subprocess.Popen([
             chrome,'--headless','--no-sandbox','--disable-gpu',
             '--disable-dev-shm-usage','--hide-scrollbars','--remote-allow-origins=*',
             f'--remote-debugging-port={PORT}',f'--user-data-dir={profile}',
             '--window-size=800,480','--disable-features=Translate',
-            f'file://{APP}/index.html'
+            '--autoplay-policy=no-user-gesture-required',url
         ],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         try:
             tabs=None
@@ -109,9 +157,9 @@ async def main():
                         'width':800,'height':480,'deviceScaleFactor':1,'mobile':False
                     })
                     await call('Page.addScriptToEvaluateOnNewDocument',{
-                        'source':"Object.defineProperty(navigator,'language',{configurable:true,get:()=> 'de-DE'});"
+                        'source':"Object.defineProperty(navigator,'language',{configurable:true,get:()=> 'de-DE'});" + CAPTURE_AUDIO
                     })
-                    await call('Page.navigate',{'url':f'file://{APP}/index.html'})
+                    await call('Page.navigate',{'url':url})
                     await asyncio.sleep(1.0)
                     ready=await call('Runtime.evaluate',{
                         'expression':"Boolean(window.__MuPiRunPreview && document.querySelector('#world').width===800)",
@@ -123,11 +171,17 @@ async def main():
                         'format':'jpeg','quality':77,
                         'maxWidth':800,'maxHeight':480,'everyNthFrame':1
                     })
+                    audio_start=await call('Runtime.evaluate',{'expression':'captureStart()','awaitPromise':True,'userGesture':True,'returnByValue':True})
+                    if audio_start.get('result',{}).get('value') is not True:
+                        raise RuntimeError('Browser audio recorder failed to start')
                     start=time.monotonic()
                     key_codes={'left':'ArrowLeft','right':'ArrowRight',
                         'jump':'ArrowUp','duck':'ArrowDown'}
 
                     def choose_action(s):
+                        # Return to the centre once the introductory left-lane rock is behind us.
+                        if 104 < s['distance'] < 124 and s['lane'] == -1:
+                            return 'right'
                         current=[o for o in s['obstacles']
                                  if not o['checked'] and 0<o['z']<56]
                         current.sort(key=lambda o:o['z'])
@@ -195,6 +249,13 @@ async def main():
                         # 14–18 reaction checks per second; the actual
                         # Chromium renderer continues freely in between.
                         await asyncio.sleep(.067)
+                    audio_stop=await call('Runtime.evaluate',{'expression':'captureStop()','awaitPromise':True,'returnByValue':True})
+                    mix=audio_stop['result']['value']
+                    (temp/'mix.webm').write_bytes(base64.b64decode(mix['data']))
+                    print('Measured audio peaks:',mix['peaks'],flush=True)
+                    for asset in ('music.ogg','jump.mp3','slide.mp3','collect.mp3'):
+                        if mix['peaks'].get('assets/audio/'+asset,0) < .0005:
+                            raise RuntimeError('Missing audible channel: '+asset)
                     await call('Page.stopScreencast')
                     await asyncio.sleep(.25)
                     print('Captured frames:',len(frames),'inputs',input_counts,flush=True)
@@ -212,7 +273,7 @@ async def main():
                     try:await reader
                     except asyncio.CancelledError:pass
 
-            # Resample *recorded* game frames in real time to 15 fps.
+            # Resample *recorded* game frames in real time to 30 fps.
             # Reusing a frame merely accommodates variable capture fps.
             times=[when-start for when,_ in frames]
             for i in range(round(DURATION*FPS)):
@@ -224,10 +285,12 @@ async def main():
             subprocess.run([
                 encoder,'-hide_banner','-loglevel','error','-y',
                 '-framerate',str(FPS),'-i',str(sequence/'%05d.jpg'),
+                '-i',str(temp/'mix.webm'),'-map','0:v:0','-map','1:a:0',
                 '-vf','scale=800:480:flags=lanczos,format=yuv420p',
-                '-c:v','libx264','-preset','veryfast','-crf','22',
+                '-c:v','libx264','-preset','medium','-crf','26','-maxrate','1900k','-bufsize','3800k',
                 '-pix_fmt','yuv420p','-movflags','+faststart','-r',str(FPS),
-                '-an',str(OUTPUT)
+                '-c:a','aac','-b:a','128k','-t',str(DURATION),
+                '-metadata','comment='+(APP/'AUDIO-CREDITS.txt').read_text(),str(OUTPUT)
             ],check=True,timeout=60)
             result=subprocess.run([
                 'ffprobe','-v','error','-show_entries',
@@ -243,6 +306,7 @@ async def main():
                 str(APP/'screencast-poster.webp')
             ],check=True,timeout=30)
         finally:
+            server.shutdown();server.server_close()
             proc.terminate()
             try:proc.wait(timeout=3)
             except subprocess.TimeoutExpired:proc.kill()
