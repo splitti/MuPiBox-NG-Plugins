@@ -202,9 +202,9 @@ def validate_qt_scene(data: bytes, files: set[str], permissions: list[str]) -> d
         typ, text, asset, action = [element.get(k, "") for k in ("type", "text", "asset", "action")]
         if (not isinstance(text, str) or len(text.encode("utf-8")) > 240 or "\0" in text
                 or not isinstance(asset, str) or not isinstance(action, str)
-                or not isinstance(element.get("fontSize", 0), int)
+                or type(element.get("fontSize", 0)) is not int
                 or not 0 <= element.get("fontSize", 0) <= 64
-                or element.get("color", "") and not color(element["color"])):
+                or ("color" in element and not color(element["color"]))):
             raise PackageError("qtquick element has invalid text or styling")
         if typ in ("text", "counter"):
             if not text or asset or action:

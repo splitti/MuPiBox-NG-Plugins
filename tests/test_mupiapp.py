@@ -74,6 +74,10 @@ class PackageTests(unittest.TestCase):
         with self.assertRaises(PackageError):
             validate_qt_scene(raw,assets,[])
         self.assertEqual(validate_qt_scene(raw,assets,["audio"])["sceneVersion"],1)
+        scene["elements"][0]["fontSize"]=True
+        with self.assertRaises(PackageError):
+            validate_qt_scene(json.dumps(scene).encode(),assets,["audio"])
+        del scene["elements"][0]["fontSize"]
         scene["elements"][0]["action"]="system.exec"
         with self.assertRaises(PackageError):
             validate_qt_scene(json.dumps(scene).encode(),assets,["audio"])
