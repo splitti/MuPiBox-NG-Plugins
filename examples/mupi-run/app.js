@@ -10,39 +10,40 @@
   const hostContext=sdk.getContext().catch(()=>null);
   const audioReady=hostContext.then(context=>audio.prepare(context));
   const runTiles=Object.create(null);
-  let sourceWidth=0;
+  const tileSurface=document.createElement('canvas');
+  // One small upload when the visible pose changes. The seven source pages stay on the CPU.
+  tileSurface.width=tileSurface.height=1;
+  const tilePaint=tileSurface.getContext('2d',{willReadFrequently:true});
+  let lastTilePage=null, lastTileIndex=-1;
   async function prepareAtlas(file) {
+    const name=file.split('.')[0], layout=window.MuPiRunTiles[name];
     const image=new Image();
     image.src='./art/'+file;
     await image.decode();
-    const name=file.split('.')[0], mode=name.split('-')[0];
-    const running=name==='mupi-running-24';
-    if(running) sourceWidth=image.naturalWidth;
-    const spec=running ? null : atlas.actions[mode];
-    const columns=running ? 6 : atlas.columns, count=running ? 24 : atlas.perPage;
-    const [sw,sh]=running ? [320,320] : spec.size;
-    const [cw,ch]=running ? [320,320] : spec.cell;
-    const scale=205/512 * .7; // 560-pixel render surface at the 800px reference size
-    const w=running ? 144 : Math.ceil(spec.draw[0]*scale);
-    const h=running ? 144 : Math.ceil(spec.draw[1]*scale);
-    const page=document.createElement('canvas');
-    page.width=columns*(w+2); page.height=Math.ceil(count/columns)*(h+2);
-    const paint=page.getContext('2d');
-    paint.imageSmoothingQuality='high';
-    for(let i=0;i<count;i++){
-      const x=i%columns, y=Math.floor(i/columns), gutter=running?0:1;
-      paint.drawImage(image,x*cw+gutter,y*ch+gutter,sw,sh,x*(w+2)+1,y*(h+2)+1,w,h);
+    // Keep the decoded image as an immutable bitmap; a page-size Canvas copy is unnecessary.
+    let page=image;
+    if(typeof createImageBitmap==='function') {
+      try { page=await createImageBitmap(image); } catch (_) { /* decoded Image remains drawable */ }
     }
-    runTiles[name]={page,columns,w,h};
+    const {w,h,tiles}=layout;
+    runTiles[name]={page,w,h,tiles};
+    tileSurface.width=Math.max(tileSurface.width,w+2);
+    tileSurface.height=Math.max(tileSurface.height,h+2);
   }
   async function prepareRunner() {
-    // Keep just one full-size source sheet in use during conversion.
+    // Decode one prepared page at a time to bound temporary memory.
     for(const file of window.MuPiRunArt) {
       if(file!=='logo-ui.png') await prepareAtlas(file);
     }
   }
-  const runnerReady=prepareRunner();
-  const world = window.createRunWorld(ctx, game);
+  let world;
+  async function prepareGraphics() {
+    await audio.opening;
+    world=window.createRunWorld(ctx,game);
+    await world.ready;
+    await prepareRunner();
+  }
+  const graphicsReady=prepareGraphics();
   const overlay = document.getElementById('overlay');
   const headline = document.getElementById('headline');
   const message = document.getElementById('message');
@@ -104,11 +105,17 @@
     const running=visible.name==='run';
     const name=running ? 'mupi-running-24' : visible.name+'-'+Math.floor(visible.tile/atlas.perPage);
     const tile=running ? visible.frame : visible.tile%atlas.perPage;
-    const {page,columns,w,h}=runTiles[name];
+    const {page,w,h,tiles}=runTiles[name];
     const spec=running ? null : atlas.actions[visible.name];
     const [ox,oy]=running ? [256,486] : spec.origin;
     const [dw,dh]=running ? [512,512] : spec.draw;
-    ctx.drawImage(page,(tile%columns)*(w+2)+1,Math.floor(tile/columns)*(h+2)+1,w,h,
+    if(page!==lastTilePage || tile!==lastTileIndex){
+      tilePaint.clearRect(0,0,tileSurface.width,tileSurface.height);
+      const [dx,dy,sx,sy,cw,ch]=tiles[tile];
+      tilePaint.drawImage(page,sx,sy,cw,ch,1+dx,1+dy,cw,ch);
+      lastTilePage=page;lastTileIndex=tile;
+    }
+    ctx.drawImage(tileSurface,1,1,w,h,
       p.x-ox*scale,p.y-oy*scale,dw*scale,dh*scale);
   }
   const hazards = {
@@ -195,16 +202,16 @@
     }
     renderOverlay();
   }
-  const paintInterval = 1000/30;
-  let nextPaint = 0;
-  function frame(now){
-    const delta=lastFrame ? Math.min(.20,(now-lastFrame)/1000) : 0;
-    lastFrame=now;
+  // Poses are authored at 30 FPS. Use one presentation slot per two 60 Hz physics ticks.
+  let paintedSlot = -1;
+  function paintSlot() { return Math.floor(Math.round(state.time * 60) / 2); }
+
+  function simulateUntil(now){
+    const delta=lastFrame ? Math.max(0,now-lastFrame)/1000 : 0;
+    lastFrame=Math.max(now,lastFrame);
     if(state.phase==='running'){
       const notes=state.noteCount, steps=state.steps, kilometer=Math.floor(state.distance/1000);
-      // Keep collision and action timing in short steps after a slow paint.
-      const stepsDue=Math.ceil(delta*30);
-      for(let n=0;n<stepsDue;n++) game.step(state,delta/stepsDue);
+      game.advance(state,delta);
       if (state.noteCount>notes) audio.play('collect');
       if (state.steps>steps) audio.play('run');
       if (Math.floor(state.distance/1000)>kilometer) audio.play('kilometer');
@@ -216,10 +223,15 @@
       if(level>lastLevel){lastLevel=level;showToast(tr('level',{n:level}));}
       if(state.phase==='over')finish();
     }
+  }
+  function frame(now){
+    simulateUntil(now);
     pollGamepad();
-    if ((state.phase==='running' || now-crashAt<360) && now+.5>=nextPaint) {
+    if (state.phase==='running' && paintSlot()!==paintedSlot) {
+      paintedSlot=paintSlot();
       render();
-      nextPaint = now + paintInterval - (Math.max(0, now - nextPaint) % paintInterval);
+    } else if (state.phase==='over' && (now-crashAt<360 || canvas.style.transform)) {
+      render();
     }
     window.requestAnimationFrame(frame);
   }
@@ -231,12 +243,16 @@
       lastLevel=1;
       previousTerrain='river';
     }
+    lastFrame=performance.now();
+    paintedSlot=-1;
     if(state.phase==='paused')game.act(state,'pause');
     else game.act(state,'start');
     renderOverlay();
   }
   function togglePause(){
     if(state.phase==='running'||state.phase==='paused'){
+      if(state.phase==='running')simulateUntil(performance.now());
+      lastFrame=performance.now();
       game.act(state,'pause');renderOverlay();
     }
   }
@@ -251,13 +267,15 @@
       if(action==='start'||action==='jump')begin();
       return;
     }
+    simulateUntil(performance.now());
+    if(state.phase!=='running')return;
     if(action==='jump' || action==='duck') {
       const name=action==='jump'?'jump':'slide';
       const phase=Math.floor(state.runPose);
       if(game.act(state,action,atlas.actions[name].resume[phase])){
         audio.play(name);
         render();
-        nextPaint=performance.now()+paintInterval;
+        paintedSlot=paintSlot();
       }
     } else game.act(state,action);
   }
@@ -368,14 +386,14 @@
           terrain:state.lastTerrain,obstacles:state.obstacles.map(o=>({...o})),
           missingSprites:window.MuPiRunArt.filter(file=>file!=='logo-ui.png' && !runTiles[file.split('.')[0]]),
           controllerMode:gameElement.classList.contains('controller-active'),
-          usingUserSheet:sourceWidth===1920,
+          usingUserSheet:runTiles['mupi-running-24']?.w===144,
           sheetFrame:Math.floor(state.runPose), pose:pose(), notes:state.noteCount, ready
         };
       }
     });
   }
   primary.disabled=true;
-  Promise.all([runnerReady,world.ready,audioReady]).then(()=>{
+  Promise.all([graphicsReady,audioReady]).then(()=>{
     ready=true;primary.disabled=false;renderOverlay();render();
   }).catch(error=>{loadingError='Laden fehlgeschlagen: '+error.message; renderOverlay();});
   window.addEventListener('resize',()=>{resize();if(ready)render();});
