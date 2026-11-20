@@ -1,4 +1,4 @@
-# MuPi Run 0.8.3
+# MuPi Run 0.8.4
 
 Sammle goldene Noten im Flussbett, auf dem Holzsteg und auf dem Waldpfad. Spring über den umgestürzten Stamm, grätsche unter dem Querbalken durch und wechsle die Spur, wenn ein Fuchs auf dem Weg schläft. Die Distanz bestimmt den Rekord. Die Noten zählen für den jeweiligen Lauf.
 
@@ -26,9 +26,9 @@ MuPi übernimmt beim Tastendruck die aktuell sichtbare der 24 Laufposen. Beide A
 
 Alle Streckenobjekte sind in Metern relativ zur Kamera platziert. Dieselbe Projektion bestimmt Spur, Tiefe, Größe und Kontaktpunkt. Für jeden Bildpunkt des Bodens wird eine nach Entfernung vorgefilterte Textur abgetastet. Boden, Pflanzen, Geländer, Schmetterlinge und Sammelnoten werden in Tiefenreihenfolge in einen gemeinsamen Bildpuffer gezeichnet. Ein lokaler WebP-Atlas enthält die Motive in mehreren Größen. Am Bodenanker von MuPi übergibt die App den Bildpuffer an das Canvas und zeichnet anschließend die Figur und nähere Objekte. Die Spielwelt rendert mit bis zu 560 Pixeln Breite und 30 Bildern pro Sekunde. Bedienelemente und Anzeigen nutzen die Displayauflösung. Ein Ring mit 16 wiederverwendeten Abschnitten hält nur die Umgebung in Sichtweite. Bäume, Steine, Farn und Schmetterlinge nähern sich mit der Strecke. Ein separater Zufallswert je Abschnitt bestimmt Position und Erscheinung. Schmetterlinge haben rote, violette oder gelbe Flügel und animierten Flügelschlag.
 
-Notenreihen folgen in den Hinderniswellen einer passierbaren Spur. Animationsphasen für Goldreflex und Flügelschlag werden beim Start einmal gerendert. Das Spiel zeichnet die transparenten MuPi-Bilder aus sechs WebP-Seiten mit je 60 Kacheln. Jede Seite passt in eine 2048-Pixel-Textur. Das Paket enthält die verwendeten Grafiken lokal.
+Notenreihen folgen in den Hinderniswellen einer passierbaren Spur. Animationsphasen für Goldreflex und Flügelschlag werden beim Start einmal gerendert. Der Paketbau liefert sieben verlustfrei gepackte WebP-Seiten in Spielauflösung. Die App dekodiert die 384 Posen im Menü. Ein kleiner Zeichenpuffer übernimmt beim Posenwechsel nur das benötigte Rechteck. Der Boden verwendet vorberechnete Farbwerte. Die Simulation läuft in 60-Hz-Schritten. Nach jeweils zwei Schritten zeichnet das Spiel die nächste Pose. Sprung und Grätsche reagieren unmittelbar auf die Eingabe.
 
-Vor dem ersten Lauf dekodiert MuPi Run die 24 Laufposen und alle Aktionskacheln. Sie liegen in sieben transparenten Canvas-Flächen in Spielauflösung. Die Starttaste wird nach der Vorbereitung freigegeben.
+Die [Messungen auf zwei Raspberry Pi 4](benchmarks/pi4-2026-11-20.md) enthalten Startzeiten, einzelne Bildhänger und den Vergleich der Renderpfade.
 
 ## Musik und Soundeffekte
 
@@ -55,7 +55,8 @@ Im Repository-Stamm ausführen.
 
 ```sh
 python3 tools/build_mupi_run.py
-node --test tests/mupi_run.test.cjs tests/mupi_run_autopilot.test.cjs
+node --test tests/mupi_run.test.cjs tests/mupi_run_autopilot.test.cjs tests/mupi_run_timing.test.cjs
+python3 tests/mupi_run_atlases_test.py
 python3 tests/mupi_run_sheet_test.py
 python3 tests/mupi_run_sprite_test.py
 python3 tools/capture_mupi_run_screenshots.py
