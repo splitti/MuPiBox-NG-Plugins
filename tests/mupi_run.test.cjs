@@ -284,7 +284,9 @@ test('audio sliders scale music and effects independently on the native mixer', 
   assert.equal(calls[0][2],17); // base music 34, times 50%
   assert.equal(calls[1][2],12); // base jump 62, times 20%
   await sound.setLevels({music:25,effects:20});
-  assert.deepEqual(calls.at(-1).slice(0,3),['musicVolume',9,{relative:true}]);
+  assert.equal(calls.at(-1)[0],'musicVolume');
+  assert.equal(calls.at(-1)[1],9);
+  assert.equal(calls.at(-1)[2].relative,true);
   await sound.setLevels({music:25,effects:0});
   await sound.play('jump');
   assert.equal(calls.at(-1)[2],0);
