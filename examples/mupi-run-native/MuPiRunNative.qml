@@ -369,14 +369,71 @@ Item {
                 else gameView.act(dy>25?"duck":"jump")
             }
         }
-        Rectangle {z:201;x:16;y:77;width:289;height:55;radius:12;color:'#80203951';border.color:'#88cddd';visible:gameView.phase==='running'}
-        Image { z:202;x:20;y:79;width:72;height:52;visible:gameView.phase==='running';source:gameView.art("title");fillMode:Image.PreserveAspectFit }
-        Text {
-            z:202;x:102;y:83;width:202;height:42;visible:gameView.phase==='running'
-            text: {var frame=gameView.renderVersion;return Math.floor(gameView.state.distance)+' m   ♫ '+gameView.state.noteCount+'   ★ '+gameView.best}
-            color:gameView.collected?'#ffca46':'#fff4d2';font.pixelSize:19;font.bold:true
-            fontSizeMode:Text.Fit;minimumPixelSize:13;elide:Text.ElideRight
-            verticalAlignment:Text.AlignVCenter
+        // Web HUD layout: three independent, legible counters in the top row.
+        // Keep the top-left space free for NG's trusted Back button.
+        Image {
+            z:202; x:70; y:0; width:136; height:66
+            visible:gameView.phase==='running'
+            source:gameView.art("title")
+            fillMode:Image.PreserveAspectFit
+        }
+        Row {
+            z:202; x:326; y:9; spacing:7
+            visible:gameView.phase==='running'
+            Rectangle {
+                objectName:"run-hud-meters"
+                width:120; height:48; radius:12
+                color:"#e6182e28";border.color:"#9ce9daa3";border.width:1
+                Column {
+                    anchors.centerIn:parent; spacing:0
+                    Text {
+                        width:102;height:27;horizontalAlignment:Text.AlignHCenter
+                        text: { var tick=gameView.renderVersion;return String(Math.floor(gameView.state.distance)) }
+                        font.pixelSize:24;font.bold:true;fontSizeMode:Text.Fit;minimumPixelSize:13
+                        color:"#ffffff"
+                    }
+                    Text {
+                        width:102;height:12;horizontalAlignment:Text.AlignHCenter
+                        text:gameView.tr("meters").toUpperCase();font.pixelSize:10;font.bold:true
+                        color:"#aaf4df"
+                    }
+                }
+            }
+            Rectangle {
+                objectName:"run-hud-notes"
+                width:85;height:48;radius:12
+                color:gameView.collected?"#ee4c4828":"#e6182e28"
+                border.color:gameView.collected?"#ffe292":"#9ce9daa3";border.width:1
+                Row {
+                    anchors.centerIn:parent;spacing:5
+                    Text {text:"♫";font.pixelSize:27;font.bold:true;color:"#ffd268"}
+                    Text {
+                        width:38;height:32;verticalAlignment:Text.AlignVCenter
+                        text: { var tick=gameView.renderVersion;return String(gameView.state.noteCount) }
+                        font.pixelSize:24;font.bold:true;fontSizeMode:Text.Fit;minimumPixelSize:13
+                        color:"#ffffff"
+                    }
+                }
+            }
+            Rectangle {
+                objectName:"run-hud-record"
+                width:115;height:48;radius:12
+                color:"#e6182e28";border.color:"#9ce9daa3";border.width:1
+                Column {
+                    anchors.centerIn:parent;spacing:1
+                    Text {
+                        width:100;height:14;horizontalAlignment:Text.AlignHCenter
+                        text:gameView.tr("best").toUpperCase();font.pixelSize:10;font.bold:true
+                        color:"#eaf8ff"
+                    }
+                    Text {
+                        width:100;height:22;horizontalAlignment:Text.AlignHCenter
+                        text:String(gameView.best)+" m"
+                        font.pixelSize:18;font.bold:true;fontSizeMode:Text.Fit;minimumPixelSize:12
+                        color:"#ffdc7d"
+                    }
+                }
+            }
         }
         Text {
             z:202; anchors.horizontalCenter:parent.horizontalCenter; y:80
