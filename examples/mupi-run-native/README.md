@@ -2,6 +2,10 @@
 
 The native game retains its preview ID, `community.mupi-run-native`. It uses the Web game's fixed 60 Hz rules, the original 24-frame run and pose-dependent 35-frame action clips. A jump or slide starts at the next accepted input. The renderer updates the pose at 30 Hz. A static Qt shader projects the original road textures for riverbed, boardwalk and forest. The software backend uses precomputed road phases. Scenery uses culled, recycled Qt scene graph items. The gold notes, butterflies, obstacles, cover, splash and character pages come from the existing game.
 
+## Score display
+
+The native Qt Quick runner follows the Web version's compact, separated top-of-screen score cards. Meters show a large numeric counter with a separate **METER** label, collected notes have a golden music-note icon and pickup highlight, and the record stays in its own **REKORD** card. The HUD is visible only during gameplay; menu screens keep score panels hidden, and the top-left corner remains available for NG's trusted Back control. This is a native QML implementation, not an embedded Web view.
+
 ## Installation and compatibility
 
 Requires MuPiBox NG 0.2.0-alpha.73 or later. Install **MuPi Run** from the Community Apps catalog. Existing Qt preview installations use the normal update action and retain their score and audio settings. The retired web edition used a separate app ID and its saved data stays with that installation. On a box with both editions installed, the admin can disable the web edition under installed apps.
