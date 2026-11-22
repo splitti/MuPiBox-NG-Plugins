@@ -61,6 +61,14 @@ Item {
     property var timestamps: []
     property double startWallMs: 0
     property int best: 0
+    // Default native layout for legacy packages without runner-hud.json.
+    // New packages may override ONLY the validated positions and styling.
+    property string hudSource: "built-in"
+    property var hudCards: [
+        {kind:"meters",x:326,y:9,width:120,height:48,background:"#e6182e28",border:"#9ce9daa3",valueColor:"#ffffff",labelColor:"#aaf4df",accentColor:"#ffd268",valueSize:24,labelSize:10},
+        {kind:"notes",x:453,y:9,width:85,height:48,background:"#e6182e28",border:"#9ce9daa3",valueColor:"#ffffff",labelColor:"#aaf4df",accentColor:"#ffd268",valueSize:24,labelSize:10},
+        {kind:"record",x:545,y:9,width:115,height:48,background:"#e6182e28",border:"#9ce9daa3",valueColor:"#ffdc7d",labelColor:"#eaf8ff",accentColor:"#ffd268",valueSize:18,labelSize:10}
+    ]
     property int overCount: 0
     property string loadError: ""
     property int loadedImages: 0
@@ -377,60 +385,72 @@ Item {
             source:gameView.art("title")
             fillMode:Image.PreserveAspectFit
         }
-        Row {
-            z:202; x:326; y:9; spacing:7
-            visible:gameView.phase==='running'
-            Rectangle {
-                objectName:"run-hud-meters"
-                width:120; height:48; radius:12
-                color:"#e6182e28";border.color:"#9ce9daa3";border.width:1
-                Column {
-                    anchors.centerIn:parent; spacing:0
+        Repeater {
+            model:gameView.hudCards
+            delegate:Rectangle {
+                required property var modelData
+                readonly property string cardKind: modelData.kind
+                objectName:"run-hud-"+cardKind
+                z:202
+                x:modelData.x; y:modelData.y
+                width:modelData.width; height:modelData.height
+                visible:gameView.phase==="running"
+                radius:12
+                color:cardKind==="notes" && gameView.collected ? "#ee4c4828" : modelData.background
+                border.color:cardKind==="notes" && gameView.collected ? modelData.accentColor : modelData.border
+                border.width:1
+                Item {
+                    anchors.centerIn:parent
+                    width:parent.width-12; height:42
+                    visible:cardKind!=="notes"
                     Text {
-                        width:102;height:27;horizontalAlignment:Text.AlignHCenter
-                        text: { var tick=gameView.renderVersion;return String(Math.floor(gameView.state.distance)) }
-                        font.pixelSize:24;font.bold:true;fontSizeMode:Text.Fit;minimumPixelSize:13
-                        color:"#ffffff"
+                        width:parent.width
+                        y:cardKind==="meters" ? 0 : 18
+                        height:24
+                        horizontalAlignment:Text.AlignHCenter
+                        verticalAlignment:Text.AlignVCenter
+                        textFormat:Text.PlainText
+                        text:{
+                            const tick=gameView.renderVersion
+                            return cardKind==="meters" ? String(Math.floor(gameView.state.distance)) : String(gameView.best)+" m"
+                        }
+                        font.pixelSize:modelData.valueSize; font.bold:true
+                        fontSizeMode:Text.Fit;minimumPixelSize:12
+                        color:modelData.valueColor
                     }
                     Text {
-                        width:102;height:12;horizontalAlignment:Text.AlignHCenter
-                        text:gameView.tr("meters").toUpperCase();font.pixelSize:10;font.bold:true
-                        color:"#aaf4df"
+                        width:parent.width
+                        y:cardKind==="meters" ? 27 : 0
+                        height:14
+                        horizontalAlignment:Text.AlignHCenter
+                        verticalAlignment:Text.AlignVCenter
+                        textFormat:Text.PlainText
+                        text:cardKind==="meters" ? gameView.tr("meters").toUpperCase() : gameView.tr("best").toUpperCase()
+                        font.pixelSize:modelData.labelSize;font.bold:true
+                        color:modelData.labelColor
                     }
                 }
-            }
-            Rectangle {
-                objectName:"run-hud-notes"
-                width:85;height:48;radius:12
-                color:gameView.collected?"#ee4c4828":"#e6182e28"
-                border.color:gameView.collected?"#ffe292":"#9ce9daa3";border.width:1
                 Row {
-                    anchors.centerIn:parent;spacing:5
-                    Text {text:"♫";font.pixelSize:27;font.bold:true;color:"#ffd268"}
+                    anchors.centerIn:parent
+                    spacing:5
+                    visible:cardKind==="notes"
                     Text {
-                        width:38;height:32;verticalAlignment:Text.AlignVCenter
-                        text: { var tick=gameView.renderVersion;return String(gameView.state.noteCount) }
-                        font.pixelSize:24;font.bold:true;fontSizeMode:Text.Fit;minimumPixelSize:13
-                        color:"#ffffff"
-                    }
-                }
-            }
-            Rectangle {
-                objectName:"run-hud-record"
-                width:115;height:48;radius:12
-                color:"#e6182e28";border.color:"#9ce9daa3";border.width:1
-                Column {
-                    anchors.centerIn:parent;spacing:1
-                    Text {
-                        width:100;height:14;horizontalAlignment:Text.AlignHCenter
-                        text:gameView.tr("best").toUpperCase();font.pixelSize:10;font.bold:true
-                        color:"#eaf8ff"
+                        text:"♫";textFormat:Text.PlainText
+                        font.pixelSize:27;font.bold:true
+                        color:modelData.accentColor
                     }
                     Text {
-                        width:100;height:22;horizontalAlignment:Text.AlignHCenter
-                        text:String(gameView.best)+" m"
-                        font.pixelSize:18;font.bold:true;fontSizeMode:Text.Fit;minimumPixelSize:12
-                        color:"#ffdc7d"
+                        width:Math.max(34,Math.min(48,modelData.width-44))
+                        height:32
+                        textFormat:Text.PlainText
+                        verticalAlignment:Text.AlignVCenter
+                        text:{
+                            const tick=gameView.renderVersion
+                            return String(gameView.state.noteCount)
+                        }
+                        font.pixelSize:modelData.valueSize;font.bold:true
+                        fontSizeMode:Text.Fit;minimumPixelSize:12
+                        color:modelData.valueColor
                     }
                 }
             }

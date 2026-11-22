@@ -4,13 +4,15 @@ The native game retains its preview ID, `community.mupi-run-native`. It uses the
 
 ## Score display
 
-The native Qt Quick runner follows the Web version's compact, separated top-of-screen score cards. Meters show a large numeric counter with a separate **METER** label, collected notes have a golden music-note icon and pickup highlight, and the record stays in its own **REKORD** card. The HUD is visible only during gameplay; menu screens keep score panels hidden, and the top-left corner remains available for NG's trusted Back control. This is a native QML implementation, not an embedded Web view.
+The native Qt Quick runner follows the Web version's compact, separated top-of-screen score cards. Meters show a large numeric counter with a separate **METER** label, collected notes have a golden music-note icon and pickup highlight, and the record stays in its own **REKORD** card. The HUD is visible only during gameplay; menu screens keep score panels hidden, and the top-left corner remains available for NG's trusted Back control.
+
+**From 1.0.1**, the package includes `runner-hud.json` (strict data-only schema v1). Once the NG host has the optional HUD reader, moving, coloring and sizing the three score cards needs only a normal catalog update, not a new NG Alpha. The game uses the latest installed HUD data at the next launch. Older NG hosts accept the 1.0.1 package and ignore this optional JSON; they will **not** display the new cards until that one-time host feature is installed. The package contains no executable QML or JavaScript. Gameplay logic, shader and new arbitrary Qt features still require trusted host updates or the separately reviewed sandbox runtime (#129).
 
 ## Installation and compatibility
 
 Requires MuPiBox NG 0.2.0-alpha.73 or later. Install **MuPi Run** from the Community Apps catalog. Existing Qt preview installations use the normal update action and retain their score and audio settings. The retired web edition used a separate app ID and its saved data stays with that installation. On a box with both editions installed, the admin can disable the web edition under installed apps.
 
-The host checks the package ID, required assets and PNG dimensions before installing. The installed package supplies JSON, credits and local media. The host supplies the QML, shader, fixed-step simulation and SDK bridge. This pairing keeps executable files out of Community packages. The general-purpose isolation proposal is tracked in [NG #129](https://github.com/splitti/MuPiBox-NG/issues/129).
+The host checks the package ID, required assets, optional HUD geometry/colors, and PNG dimensions before installing. The installed package supplies JSON, credits and local media. The host supplies the QML, shader, fixed-step simulation and SDK bridge. This pairing keeps executable files out of Community packages. The general-purpose isolation proposal is tracked in [NG #129](https://github.com/splitti/MuPiBox-NG/issues/129).
 
 The game stores its own record and independent music/effect settings. The loop starts from the menu and the host pauses and resumes its voice. The three provided effects are prepared before the start control is enabled. The loop and effects use 48 kHz mono 16-bit PCM. Music encoding increases package bytes and avoids launching a decoder on the direct PCM path. Source attribution ships in `AUDIO-CREDITS.txt`. When provided, the builder also registers assets/audio/run.wav for footsteps and assets/audio/kilometer.wav for 1,000 m events. This release includes the three supplied effects.
 
