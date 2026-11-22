@@ -1,5 +1,7 @@
 # `.mupiapp` format: v1 (Developer Preview)
 
+> **RFC, noch nicht verfügbar:** Optionale Admin-Weboberflächen sind in [Community-App-Admin-Seiten](community-app-admin-pages.md) dokumentiert. Das dort vorgeschlagene Manifest-Feld `admin` ist noch kein aktives Feature.
+
 A `.mupiapp` is a ZIP archive with `manifest.json` **at archive root**. The root also contains the app's HTML entry point and every referenced CSS/JS/WASM/image asset. No remote CDN is required for the reference app.
 
 Example:

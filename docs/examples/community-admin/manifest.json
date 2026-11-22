@@ -1,0 +1,16 @@
+{
+  "apiVersion": "1",
+  "id": "community.admin-demo",
+  "name": "Admin-Demo",
+  "description": "Dokumentationsbeispiel für eine künftige lokale Admin-Seite",
+  "version": "0.1.0",
+  "runtime": "web",
+  "entry": "index.html",
+  "permissions": ["shared-assets"],
+  "sharedDirectories": ["books"],
+  "admin": {
+    "entry": "admin/index.html",
+    "capabilities": ["settings.read", "settings.write", "files.list"],
+    "directories": ["books"]
+  }
+}
