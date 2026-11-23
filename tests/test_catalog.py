@@ -73,7 +73,8 @@ class CatalogTests(unittest.TestCase):
             "official.webcam-preview":"webcam-preview",
             "community.fotospass":"fotospass",
             "community.buecherkiste":"Buecherkiste",
-            "community.mupi-wasserschlacht":"mupi-wasserschlacht"
+            "community.mupi-wasserschlacht":"mupi-wasserschlacht",
+            "community.usb-cd-player":"usb-cd-player"
         }
         for app in validate(self.catalog):
             example = examples.get(app["id"], "")
@@ -112,6 +113,20 @@ class CatalogTests(unittest.TestCase):
         cover = (ROOT/'examples/chess/web/cover-clean-v2.jpg').read_bytes()
         self.assertTrue(cover.startswith(b'\xff\xd8\xff'))
         self.assertGreater(len(cover), 8000)
+
+    def test_usb_cd_preview_cover_and_integrity_metadata(self):
+        import struct
+        app = next(a for a in self.catalog['apps'] if a['id'] == 'community.usb-cd-player')
+        manifest = json.loads((ROOT/'examples/usb-cd-player/manifest.json').read_text())
+        self.assertEqual(manifest['cover'], 'cover.png')
+        self.assertEqual(app['icon'], 'examples/usb-cd-player/cover.png')
+        self.assertEqual(app['permissions'], ['optical-media'])
+        self.assertEqual(app['version'], manifest['version'])
+        self.assertEqual(app['asset'], 'usb-cd-player.mupiapp')
+        cover = (ROOT/'examples/usb-cd-player/cover.png').read_bytes()
+        self.assertTrue(cover.startswith(b'\x89PNG\r\n\x1a\n'))
+        self.assertEqual(struct.unpack('>II', cover[16:24]), (512,512))
+        self.assertGreater(len(cover), 20000)
 
     def test_url_injection_rejected(self):
         for key,val in (("releaseTag","../main"),("asset","https://evil.local/a.mupiapp"),("asset","../../etc"),("sha256","abc"),("id","../../../evil")):
