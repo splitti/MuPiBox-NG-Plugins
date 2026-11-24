@@ -6,6 +6,7 @@ Diese Checkliste beschreibt technische und organisatorische Prüfungen vor einer
 
 - [ ] Quellcode und Abhängigkeiten auf unerwartete Netzwerkzugriffe, Fremdcode und eingebettete Zugangsdaten prüfen.
 - [ ] Berechtigungen im Manifest auf die erforderlichen Funktionen beschränken.
+- [ ] Für eigene Apps jede angeforderte Berechtigung in `permissionReasons` konkret begründen; Host-Kompatibilität prüfen, bevor die neue Manifest-Version veröffentlicht wird.
 - [ ] Eigene und externe Bestandteile einschließlich ihrer Lizenzen dokumentieren.
 - [ ] Build- und Funktionstests ausführen; Display, Eingabe und unterstützte Sprachen überprüfen.
 - [ ] Jede `.mupiapp`-Datei mit `python3 tools/mupiapp.py validate` prüfen.

@@ -4,7 +4,7 @@
   "name": "MuPi Klavier",
   "description": "Freies Klavierspielen und Lieder lernen mit fallenden Noten oder Notenblatt.",
   "author": "MuPiBox Community",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "runtime": "web",
   "entry": "index.html",
   "icon": "assets/icon.png",
@@ -23,5 +23,10 @@
     "fullScreen": true,
     "background": "app"
   },
-  "cover": "assets/cover.jpg"
+  "cover": "assets/cover.jpg",
+  "permissionReasons": {
+    "audio": "Spielt die Klaviertöne und ausgewählten Instrumente beim freien Spielen und beim Üben der Lieder ab.",
+    "storage": "Speichert Instrument, Lautstärke und den zuletzt erreichten Übungsfortschritt lokal.",
+    "controller": "Ermöglicht das Bedienen der Klaviatur und der Lernfunktionen mit einem Gamepad."
+  }
 }

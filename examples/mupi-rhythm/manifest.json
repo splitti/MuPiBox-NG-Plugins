@@ -4,7 +4,7 @@
   "name": "MuPis Rhythm Game",
   "description": "Rhythmusspiel mit vier Touch-Spuren, Controller, eigenen Synthesizer-Melodien und Punktewertung.",
   "author": "MuPiBox Community",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.svg",
@@ -23,5 +23,10 @@
     "showSystemInfo": false,
     "fullScreen": true,
     "background": "app"
+  },
+  "permissionReasons": {
+    "storage": "Speichert den persönlichen Bestwert je Schwierigkeitsstufe lokal.",
+    "controller": "Ermöglicht das Auslösen der vier Rhythmusspuren im richtigen Takt mit dem Gamepad.",
+    "audio": "Spielt Begleitmelodien und die Töne der Rhythmusspuren über die MuPiBox ab."
   }
 }

@@ -2,7 +2,7 @@
   "apiVersion": "1",
   "id": "community.tictactoe",
   "name": "MuPi Kreuz & Kreis",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "runtime": "web",
   "entry": "index.html",
   "icon": "assets/icon.png",
@@ -22,5 +22,9 @@
     "background": "app"
   },
   "category": "games",
-  "cover": "assets/cover-clean-v2.jpg"
+  "cover": "assets/cover-clean-v2.jpg",
+  "permissionReasons": {
+    "storage": "Merkt sich den zuletzt gewählten Spielmodus lokal, damit die nächste Runde mit derselben Einstellung starten kann.",
+    "controller": "Ermöglicht die Auswahl der Spielfelder und das Setzen von Kreuz oder Kreis mit dem Gamepad."
+  }
 }

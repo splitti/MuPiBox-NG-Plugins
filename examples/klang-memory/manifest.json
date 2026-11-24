@@ -4,7 +4,7 @@
   "name": "Klang-Memory",
   "description": "Klang-Memory mit Soundkarten, Audioausgabe und neuem MuPi-Axolotl-Cover.",
   "author": "MuPiBox Team",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "runtime": "web",
   "entry": "index.html",
   "permissions": [
@@ -19,5 +19,10 @@
   },
   "cover": "cover.jpg",
   "icon": "icon.png",
-  "category": "games"
+  "category": "games",
+  "permissionReasons": {
+    "storage": "Merkt sich den persönlichen Bestwert und die gewählte Spiellautstärke lokal.",
+    "controller": "Ermöglicht die Auswahl und das Aufdecken von Klangkarten mit dem Gamepad.",
+    "audio": "Spielt die Töne der Klangkarten über die MuPiBox ab, damit gleiche Klangpaare erkannt werden können."
+  }
 }

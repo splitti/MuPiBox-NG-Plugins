@@ -2,7 +2,7 @@
   "apiVersion": "1",
   "id": "community.mupi-run-native",
   "name": "MuPi Run",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "runtime": "qtquick-scene",
   "entry": "scene.json",
   "icon": "icon.png",
@@ -23,5 +23,10 @@
     "showSystemInfo": false,
     "fullScreen": true,
     "background": "app"
+  },
+  "permissionReasons": {
+    "storage": "Speichert den persönlichen Laufrekord und die Einstellungen für Musik und Soundeffekte lokal.",
+    "controller": "Steuert das Springen und Rutschen von MuPi und ermöglicht die Bedienung der Spielmenüs mit dem Gamepad.",
+    "audio": "Spielt die Hintergrundmusik und die zu Lauf, Sprüngen, Hindernissen und Sammelobjekten gehörenden Soundeffekte ab."
   }
 }

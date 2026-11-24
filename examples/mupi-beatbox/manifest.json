@@ -4,7 +4,7 @@
   "name": "MuPis BeatBox",
   "description": "16-Step-Loopbox mit vier Spuren, Instrumenten und speicherbaren Patterns (Audio-Preview: bis vier Stimmen pro Schritt).",
   "author": "MuPiBox Community",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.svg",
@@ -23,5 +23,10 @@
     "showSystemInfo": false,
     "fullScreen": true,
     "background": "app"
+  },
+  "permissionReasons": {
+    "storage": "Speichert eigene Rhythmusmuster mit Tempo, Instrumenten und Tonhöhen lokal zum späteren Laden.",
+    "controller": "Ermöglicht die Bedienung des Rhythmusrasters und der Bedienelemente per Gamepad.",
+    "audio": "Spielt die ausgewählten Instrumente und Töne als selbst erstellte Rhythmusschleife über die MuPiBox ab."
   }
 }

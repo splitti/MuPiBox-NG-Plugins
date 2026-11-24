@@ -33,7 +33,10 @@
       "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
     },
     "runtime": {
-      "enum": ["web", "qtquick-scene"]
+      "enum": [
+        "web",
+        "qtquick-scene"
+      ]
     },
     "entry": {
       "type": "string",
@@ -76,6 +79,33 @@
         ]
       },
       "maxItems": 13
+    },
+    "permissionReasons": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "storage",
+          "controller",
+          "audio",
+          "camera",
+          "photo-save",
+          "shared-assets",
+          "network",
+          "links",
+          "homeassistant",
+          "device-status",
+          "playback",
+          "playback-control",
+          "optical-media"
+        ]
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300,
+        "pattern": "\\S"
+      },
+      "description": "Optional developer explanations; only requested permissions, at most 300 UTF-8 bytes per explanation (byte limit enforced by validator)."
     },
     "networkHosts": {
       "type": "array",
@@ -223,6 +253,305 @@
           "permissions": {
             "contains": {
               "const": "shared-assets"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "storage"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "storage"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "controller"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "controller"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "audio"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "audio"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "camera"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "camera"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "photo-save"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "photo-save"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "shared-assets"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "shared-assets"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "network"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "network"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "links"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "links"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "homeassistant"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "homeassistant"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "device-status"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "device-status"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "playback"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "playback"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "playback-control"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "playback-control"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "permissionReasons"
+        ],
+        "properties": {
+          "permissionReasons": {
+            "required": [
+              "optical-media"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "optical-media"
             }
           }
         }

@@ -48,6 +48,7 @@ Example manifest:
 | `entry`, `icon` | Relative paths inside the package, no absolute paths or `..` |
 | `cover` | Optional raster home-tile image (PNG/JPG/JPEG/WebP) relative to the package root; not the app background |
 | `permissions` | Requested privileges, **not grants**: `storage`, `controller`, `audio`, `camera`, `photo-save`, `shared-assets`, `links`, `homeassistant`, `device-status`, `playback`, `playback-control` (`network` is reserved in the packaging schema for backwards compatibility but not supported by the host; see [SDK API reference](sdk-api-reference.md)) |
+| `permissionReasons` | Optional developer explanations per requested permission (plain text, nonblank, up to 300 UTF-8 bytes each); does not grant any privileges. Requires a host supporting this field. |
 | `networkHosts` | Explicit hostname allowlist **required** when requesting `network` |
 | `category` | Preferred native menu location: `games`, `creative`, `learning`, `tools`, or `other` (defaults to `games`) |
 | `display` | Preferred orientation, minimum size and optional native MuPiBox chrome settings |
@@ -55,6 +56,22 @@ Example manifest:
 | `sharedDirectories` | Optional explicit SMB directory allowlist; requires `shared-assets`; max 8 paths |
 
 **Compatibility:** An app supporting API `1` must not assume later additions or the presence of a physical controller. A host must reject unsupported API versions and unknown permission names, and may deny any requested privilege.
+
+### Developer permission explanations
+
+NG hosts with the Community App security approval UI (alpha.83 development) can display app-authored reasons in the permission view. Example fragment:
+
+```json
+{
+  "permissions": ["controller", "storage"],
+  "permissionReasons": {
+    "controller": "Select a board cell and confirm a move with the gamepad.",
+    "storage": "Remember the selected difficulty locally."
+  }
+}
+```
+
+Only keys already present in `permissions` are allowed. Each reason is plain text, nonblank and at most 300 UTF-8 bytes. Reasons are optional for existing manifests; describe every requested permission in new first-party releases. The Admin still independently grants or revokes permissions. The text is a developer claim, not a security guarantee. Hosts with strict manifest decoding that predate support can reject this field; verify the target NG release before publishing an update.
 
 **Packaging restrictions implemented by the validator:** 200 files max, 50 MiB total uncompressed, 20 MiB per file, max 1 MiB manifest, no absolute paths, traversal paths, symbolic links, duplicate paths or case-insensitive collisions. Host enforcement must repeat checks and enforce time/CPU/memory/file limits. Invalid packages must never be extracted directly into system directories.
 
