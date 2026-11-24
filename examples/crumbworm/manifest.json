@@ -2,7 +2,7 @@
   "apiVersion": "1",
   "id": "community.mupi-kruemelwurm",
   "name": "MuPi Krümelwurm",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.png",
@@ -21,5 +21,9 @@
     "fullScreen": true,
     "background": "system"
   },
-  "cover": "cover.jpg"
+  "cover": "cover.jpg",
+  "permissionReasons": {
+    "storage": "Speichert den persönlichen Rekord, die Spielgeschwindigkeit und das gewählte Design lokal.",
+    "controller": "Steuert den Krümelwurm durch das Spielfeld, damit Krümel gesammelt und Hindernisse vermieden werden können."
+  }
 }

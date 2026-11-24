@@ -4,7 +4,7 @@
   "name": "MuPi Soundquiz",
   "description": "Instrumente nach Gehör erkennen, mit lokalen Klängen und Highscore.",
   "author": "MuPiBox Community",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.svg",
@@ -23,5 +23,10 @@
     "showSystemInfo": false,
     "fullScreen": true,
     "background": "app"
+  },
+  "permissionReasons": {
+    "storage": "Speichert den persönlichen Quizrekord lokal.",
+    "controller": "Ermöglicht die Auswahl und Bestätigung der Quizantworten per Gamepad.",
+    "audio": "Spielt Instrumentenklänge ab, die im Quiz am Gehör erkannt werden sollen."
   }
 }

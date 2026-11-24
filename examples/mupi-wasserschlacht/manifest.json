@@ -4,7 +4,7 @@
   "name": "MuPi Water Battle",
   "description": "MuPi Water Battle: originales Cover, eine Sekunde Trefferanimation, echte Offline-Sounds und direkte, knisterfreie Lautstärkeregelung über neue NG-Audio-API.",
   "author": "MuPiBox Community",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "runtime": "web",
   "entry": "index.html",
   "icon": "icon.svg",
@@ -23,5 +23,10 @@
     "showSystemInfo": false,
     "fullScreen": true,
     "background": "app"
+  },
+  "permissionReasons": {
+    "controller": "Ermöglicht das Platzieren der Schiffe, die Auswahl von Zielfeldern und das Abgeben von Schüssen per Gamepad.",
+    "audio": "Spielt Hintergrundmusik, Spiel- und Treffereffekte sowie akustische Rückmeldungen ab.",
+    "storage": "Speichert die persönlichen Musik- und Soundeinstellungen einschließlich Stummschaltung lokal."
   }
 }

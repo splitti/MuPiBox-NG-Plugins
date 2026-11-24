@@ -30,7 +30,7 @@ HOST_ALLOWED_EXTENSIONS = {
 ALLOWED_PERMISSIONS = {"storage", "controller", "audio", "camera", "photo-save", "shared-assets", "network", "links", "homeassistant", "device-status", "playback", "playback-control", "optical-media"}
 ALLOWED_FIELDS = {
     "apiVersion", "id", "name", "version", "runtime", "entry", "icon", "cover",
-    "description", "author", "permissions", "networkHosts", "display",
+    "description", "author", "permissions", "permissionReasons", "networkHosts", "display",
     "category", "galleryDirectories", "sharedDirectories",
 }
 APP_ID = re.compile(r"^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)+$")
@@ -102,6 +102,18 @@ def validate_manifest(data: object, files: set[str]) -> dict:
         raise PackageError("permissions must be a string array")
     if len(set(perms)) != len(perms) or not set(perms).issubset(ALLOWED_PERMISSIONS):
         raise PackageError("permissions contain duplicates or unsupported values")
+    if "permissionReasons" in data:
+        reasons = data["permissionReasons"]
+        if not isinstance(reasons, dict):
+            raise PackageError("permissionReasons must be an object")
+        for permission, reason in reasons.items():
+            if permission not in perms or not isinstance(reason, str) or not reason.strip():
+                raise PackageError("invalid permission reason")
+            try:
+                if len(reason.encode("utf-8")) > 300:
+                    raise PackageError("permission reason exceeds 300 UTF-8 bytes")
+            except UnicodeEncodeError as exc:
+                raise PackageError("permission reason must be valid UTF-8") from exc
     if data["runtime"] == "qtquick-scene":
         if not set(perms).issubset({"storage", "audio", "controller"}) or data.get("galleryDirectories") or data.get("sharedDirectories"):
             raise PackageError("qtquick-scene supports only scoped storage, audio and controller permissions")

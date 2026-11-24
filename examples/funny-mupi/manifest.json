@@ -4,7 +4,7 @@
   "name": "Funny MuPi",
   "description": "Kinderwitze mit neuem freigestelltem MuPi und direkt folgendem Lachen nach der Sprachausgabe.",
   "author": "MuPiBox Community",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "runtime": "web",
   "entry": "index.html",
   "icon": "assets/mupi-laugh-refined.png",
@@ -22,5 +22,9 @@
     "fullScreen": true,
     "background": "app"
   },
-  "cover": "assets/cover.png"
+  "cover": "assets/cover.png",
+  "permissionReasons": {
+    "audio": "Liest die Kinderwitze über die Sprachausgabe der MuPiBox vor und spielt den anschließenden Lachton ab.",
+    "controller": "Ermöglicht das Aufrufen und Vorlesen weiterer Witze sowie die Bedienung der App per Gamepad."
+  }
 }
