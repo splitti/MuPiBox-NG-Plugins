@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Community-App – Einstellungen (RFC-Beispiel)</title>
+  <script src="admin.js" defer></script>
+  <style>
+    body {font: 1rem system-ui, sans-serif; color:#152b32; max-width: 48rem; margin: 2rem auto; padding:0 1rem}
+    fieldset {border:1px solid #bdced2; border-radius:.5rem; padding:1rem}
+    label {display:block; margin:.8rem 0} input {margin-left:.5rem}
+    button {padding:.6rem 1rem; margin:.5rem 0} #status {min-height:1.5em}
+  </style>
+</head>
+<body>
+  <h1>Community-App-Einstellungen</h1>
+  <p>Beispiel für den geplanten MuPiBoxAdminSDK-Vertrag. Nicht mit aktuellen Releases kompatibel.</p>
+  <p id="status" role="status" aria-live="polite">Initialisiere…</p>
+  <form id="settings-form">
+    <fieldset>
+      <legend>App-Einstellungen</legend>
+      <label>Anzeigename <input id="display-name" maxlength="80"></label>
+      <label><input id="auto-read" type="checkbox"> Seiten automatisch vorlesen</label>
+      <button id="save" type="submit" disabled>Speichern</button>
+    </fieldset>
+  </form>
+  <section aria-labelledby="books-heading">
+    <h2 id="books-heading">Eigene Bücher</h2>
+    <button id="reload-books" type="button" disabled>Bücher neu einlesen</button>
+    <ul id="books"></ul>
+  </section>
+</body>
+</html>

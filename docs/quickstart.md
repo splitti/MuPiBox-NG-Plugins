@@ -1,5 +1,7 @@
 # Build an external MuPiBox-NG app
 
+> **Geplant (noch nicht auf main verfügbar):** Eigene lokale Admin-Weboberflächen mit optionalem Manifest-Einstiegspunkt und isoliertem Admin-SDK sind im [Entwickler-RFC](community-app-admin-pages.md) beschrieben. Nicht mit einer implementierten Host-Funktion verwechseln.
+
 ## Static web app
 
 1. Make an empty directory, add `manifest.json` as described in [the manifest spec](manifest-v1.md).
