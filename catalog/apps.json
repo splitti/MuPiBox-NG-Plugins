@@ -303,6 +303,21 @@
       "asset": "mupi-run-native.mupiapp",
       "sha256": "39a4485a4f708669580128539d008374ac8e2a0896ca9ff68cd4676276d6d242",
       "icon": "examples/mupi-run/cover.png"
+    },
+    {
+      "id": "community.usb-cd-player",
+      "name": "MuPi CD-Player",
+      "description": "Experimentelle Vorschau ohne Hardwaretest: USB-Audio-CDs lokal über mpv/PipeWire wiedergeben, CD-Titel und Laufzeiten anzeigen, Laufwerk steuern und Albuminfos optional abrufen. Benötigt MuPiBox NG mit optical-media-Host-Unterstützung (PR #154); auf bisherigen Alpha-Versionen nicht nutzbar.",
+      "category": "tools",
+      "author": "MuPiBox Community",
+      "version": "0.2.0",
+      "releaseTag": "v0.1.0-preview.67",
+      "asset": "usb-cd-player.mupiapp",
+      "sha256": "8c9b4d9d4b5b5361d02c97cf2e60b7d34e1d69b37d79b0a24c65637ea91e80fd",
+      "permissions": [
+        "optical-media"
+      ],
+      "icon": "examples/usb-cd-player/cover.png"
     }
   ]
 }
